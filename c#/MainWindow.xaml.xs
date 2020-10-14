@@ -70,8 +70,8 @@ namespace SerialTest02
 
         FirebaseConfig fconfig = new FirebaseConfig
         {
-            AuthSecret = "ihUcWjzjav9Y4ZxY9oqh3xdxC7u9bE1oXT1uGeRl",
-            BasePath = "https://hightemperturelocatingsystem.firebaseio.com/"
+            AuthSecret = "urfirebasekey",
+            BasePath = "urfirebaselink"
         };
         FirebaseClient fclient;
 
