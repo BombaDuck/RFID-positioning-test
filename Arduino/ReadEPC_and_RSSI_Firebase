@@ -2,8 +2,8 @@
 
 #include "Firebase_Arduino_WiFiNINA.h"
 
-#define FIREBASE_HOST "hightemperturelocatingsystem.firebaseio.com"
-#define FIREBASE_AUTH "ihUcWjzjav9Y4ZxY9oqh3xdxC7u9bE1oXT1uGeRl"
+#define FIREBASE_HOST "urfirebaselink"
+#define FIREBASE_AUTH "urfirebasekey"
 #define WIFI_SSID "TP-LINK_ETC"
 #define WIFI_PASSWORD "bmeetc532"
 
