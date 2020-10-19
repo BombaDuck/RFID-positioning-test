@@ -188,7 +188,7 @@ namespace SerialTest02
 
         }
 
-
+        //同步方式處理資料
         private  void updateFirebase(int cEpcCount)
         {
 
