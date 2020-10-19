@@ -54,11 +54,11 @@ namespace SerialTest02
         public int anteenaSecondIndex = 0;
         public int anteenaThirdIndex = 0;
 
-        int[] anteeneFistlist = new int[10];
-        int[] anteeneSecondlist = new int[10];
-        int[] anteeneThirdlist = new int[10];
+        int[] anteenaFistlist = new int[10];
+        int[] anteenaSecondlist = new int[10];
+        int[] anteenaThirdlist = new int[10];
 
-
+        
         //ArrayList myEPClist = new ArrayList();
         List<string> myEPClist = new List<string>();
         List<int> myEPClistcount = new List<int>();
@@ -202,8 +202,8 @@ namespace SerialTest02
                 
                 
                 
-                var aadd = Convert.ToInt32(resp.Body);
-                anteeneFistlist[anteenaFirstIndex] = aadd;
+                var retrievedRssi = Convert.ToInt32(resp.Body);
+                anteenaFistlist[anteenaFirstIndex] = retrievedRssi;
 
                 if (anteenaFirstIndex == 9)
                     anteenaFirstIndex = 0;
