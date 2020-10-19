@@ -142,7 +142,7 @@ namespace SerialTest02
             reader.ParamSet("/reader/read/plan", simpleplan);
             //reader.ParamSet("/reader/read/plan", 2700);
 
-
+            
 
             
                 
@@ -155,6 +155,24 @@ namespace SerialTest02
 
         }
 
+        private bool contains()
+        {
+            foreach (string element in myEPClist)
+            {
+                if (element == myEpc)
+                {
+                    index = myEPClist.IndexOf(myEpc);
+                    myEPClistcount[index] = myEPClistcount[index] + 1;
+                    return true;
+
+                }
+
+            }
+            return false;
+            
+        }
+
+
         private void OnTagRead(object sender, TagReadDataEventArgs e)
         {
             
@@ -162,8 +180,19 @@ namespace SerialTest02
             myEpc = e.TagReadData.ToString().Substring(4, 24);
             myRssi = e.TagReadData.Rssi;
             //int temp;
+
+            if(contains() == false)
+            {
+                myEPClist.Add(myEpc);
+                myEPClist.Distinct().ToList();
+
+                index = myEPClist.IndexOf(myEpc);
+                
+                
+                
+            }
             
-            
+            /*
             if (myEPClist.Contains(myEpc))
             {
                index = myEPClist.IndexOf(myEpc);
@@ -175,7 +204,7 @@ namespace SerialTest02
                 myEPClistcount.Add(0);
                 index = myEPClist.IndexOf(myEpc);
             }
-
+            */
 
             try 
             { 
@@ -183,7 +212,6 @@ namespace SerialTest02
                 updateFirebase(epccount);
             }
             catch { }
-
 
         }
 
