@@ -164,17 +164,16 @@ namespace SerialTest02
             //int temp;
             
             
-            if (myEPClist.Contains(myEpc)==true)
+            if (myEPClist.Contains(myEpc))
             {
                index = myEPClist.IndexOf(myEpc);
                myEPClistcount[index] = myEPClistcount[index]+1;
             }
-            else if(myEPClist.Contains(myEpc)==false)
+            else
             {
                 myEPClist.Add(myEpc);
                 myEPClistcount.Add(0);
                 index = myEPClist.IndexOf(myEpc);
-            
             }
 
 
@@ -271,7 +270,7 @@ namespace SerialTest02
         {
             try
             {
-                await fclient.SetAsync("cstest001/data1", "dududududadada");
+                await fclient.SetAsync("cstest001/data1", "dudulududadada");
                 MessageBox.Show("done");
             }
             catch { }
