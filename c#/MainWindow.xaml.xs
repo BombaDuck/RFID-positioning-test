@@ -23,6 +23,9 @@ using FireSharp;
 using System.Net.Http.Headers;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography;
+using FireSharp.Response;
+using System.Diagnostics.Contracts;
+using System.Linq.Expressions;
 
 namespace SerialTest02
 {
@@ -41,11 +44,20 @@ namespace SerialTest02
 
         int tagcount = 0;
 
-
+        int index;
 
         public string myEpc;
         public int myRssi;
         public int epcCount;
+
+        public int anteenaFirstIndex = 0;
+        public int anteenaSecondIndex = 0;
+        public int anteenaThirdIndex = 0;
+
+        int[] anteeneFistlist = new int[10];
+        int[] anteeneSecondlist = new int[10];
+        int[] anteeneThirdlist = new int[10];
+
 
         //ArrayList myEPClist = new ArrayList();
         List<string> myEPClist = new List<string>();
@@ -57,7 +69,7 @@ namespace SerialTest02
             public int y;
             public int r;
         }
-
+       
         struct positioningOffset
         {
             public int R1m;
@@ -68,31 +80,34 @@ namespace SerialTest02
         positioningOffset positionsetting;
 
 
-        FirebaseConfig fconfig = new FirebaseConfig
-        {
-            AuthSecret = "urfirebasekey",
-            BasePath = "urfirebaselink"
-        };
+        
         FirebaseClient fclient;
-
-
+       
 
 
         public MainWindow()
         {
             InitializeComponent();
-            fclient = new FirebaseClient(fconfig);
+            
             if (fclient != null)
             {
                 //MessageBox.Show("The connection to database has been successfully established");
             }
 
 
+            FirebaseConfig fconfig = new FirebaseConfig
+            {
+                AuthSecret = "ihUcWjzjav9Y4ZxY9oqh3xdxC7u9bE1oXT1uGeRl",
+                BasePath = "https://hightemperturelocatingsystem.firebaseio.com/"
+            };
+            fclient = new FirebaseClient(fconfig);
+
+
             positionsetting.R1m = -47;
             positionsetting.fsl = 3;
 
-
-
+            
+            
             Reader reader = Reader.Create(uri);
 
             try
@@ -105,7 +120,7 @@ namespace SerialTest02
                 return;
             }
 
-
+            
 
             //select regions and function ([51] = read)
             string[] functionList = reader.ParamList();
@@ -129,6 +144,9 @@ namespace SerialTest02
 
 
 
+            
+                
+
             reader.StartReading();
             reader.TagRead += OnTagRead;
 
@@ -139,40 +157,87 @@ namespace SerialTest02
 
         private void OnTagRead(object sender, TagReadDataEventArgs e)
         {
-            int index;
+            
             int epccount;
             myEpc = e.TagReadData.ToString().Substring(4, 24);
             myRssi = e.TagReadData.Rssi;
             //int temp;
-            if (myEPClist.Contains(myEpc) == false)
+            
+            
+            if (myEPClist.Contains(myEpc)==true)
             {
                index = myEPClist.IndexOf(myEpc);
-               myEPClistcount[index] += 1;
-
+               myEPClistcount[index] = myEPClistcount[index]+1;
             }
-            else
+            else if(myEPClist.Contains(myEpc)==false)
             {
                 myEPClist.Add(myEpc);
                 myEPClistcount.Add(0);
                 index = myEPClist.IndexOf(myEpc);
+            
             }
-            epccount = myEPClistcount[index];
 
-            updateFirebase(epccount);
+
+            try 
+            { 
+                epccount = myEPClistcount[index]; 
+                updateFirebase(epccount);
+            }
+            catch { }
+
 
         }
 
-        private async void updateFirebase(int cEpcCount)
+
+        private  void updateFirebase(int cEpcCount)
         {
 
             try
             {
-                await fclient.SetAsync(myEpc + "/data" + (100000 + cEpcCount).ToString() + "/Rssi", myRssi);
+                fclient.Set(myEpc + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi", myRssi);
                 //cEpcCount += 1;
+                FirebaseResponse resp =  fclient.Get(myEpc + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi");
+                
+                //int respInt = Convert.ToInt32(resp);
+                //Int32.Parse(resp.ToString());
+                
+                
+                
+                var aadd = Convert.ToInt32(resp.Body);
+                anteeneFistlist[anteenaFirstIndex] = aadd;
+
+                if (anteenaFirstIndex == 9)
+                    anteenaFirstIndex = 0;
+
             }
             catch { }
         }
 
+        /* 非同步方式處裡資料
+        private async void updateFirebaseAsnyc(int cEpcCount)
+        {
+
+            try
+            {
+                await fclient.SetAsync(myEpc + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi", myRssi);
+                //cEpcCount += 1;
+                FirebaseResponse resp = await fclient.GetAsync(myEpc + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi");
+
+                //int respInt = Convert.ToInt32(resp);
+                //Int32.Parse(resp.ToString());
+
+
+
+                var aadd = Convert.ToInt32(resp.Body);
+                anteeneFistlist[anteenaFirstIndex] = aadd;
+
+                if (anteenaFirstIndex == 9)
+                    anteenaFirstIndex = 0;
+
+            }
+            catch { }
+        }
+        */
         private void positioning()
         {
             deployment pc01;
@@ -194,7 +259,9 @@ namespace SerialTest02
             antenna01.r = 0;
             antenna02.r = 0;
 
+            
 
+            
 
 
         }
