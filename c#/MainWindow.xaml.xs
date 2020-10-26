@@ -26,6 +26,7 @@ using System.Security.Cryptography;
 using FireSharp.Response;
 using System.Diagnostics.Contracts;
 using System.Linq.Expressions;
+using Newtonsoft.Json;
 
 namespace SerialTest02
 {
@@ -43,7 +44,7 @@ namespace SerialTest02
         string filePath = "C:/Users/FCUCE-2/Documents/Data/tagsAsync.txt";
 
         int tagcount = 0;
-
+        
         int index;
 
         public string myEpc;
@@ -65,24 +66,23 @@ namespace SerialTest02
         //
         struct deployment
         {
-            public int x;
-            public int y;
-            public int r;
+            public double x;
+            public double y;
+            public double r;
         }
-       
+
         struct positioningOffset
         {
-            public int R1m;
-            public int RSSI;
-            public int fsl;
-            public int distance;
+            public double R1m;
+            public double RSSI;
+            public double fsl;
         }
         positioningOffset positionsetting;
 
 
-        
+
         FirebaseClient fclient;
-       
+        FirebaseResponse export;
 
 
         public MainWindow()
@@ -93,7 +93,7 @@ namespace SerialTest02
             {
                 //MessageBox.Show("The connection to database has been successfully established");
             }
-
+            
 
             FirebaseConfig fconfig = new FirebaseConfig
             {
@@ -155,22 +155,7 @@ namespace SerialTest02
 
         }
 
-        private bool contains()
-        {
-            foreach (string element in myEPClist)
-            {
-                if (element == myEpc)
-                {
-                    index = myEPClist.IndexOf(myEpc);
-                    myEPClistcount[index] = myEPClistcount[index] + 1;
-                    return true;
 
-                }
-
-            }
-            return false;
-            
-        }
 
 
         private void OnTagRead(object sender, TagReadDataEventArgs e)
@@ -181,22 +166,13 @@ namespace SerialTest02
             myRssi = e.TagReadData.Rssi;
             //int temp;
 
-            if(contains() == false)
-            {
-                myEPClist.Add(myEpc);
-                myEPClist.Distinct().ToList();
 
-                index = myEPClist.IndexOf(myEpc);
-                
-                
-                
-            }
             
-            /*
+            
             if (myEPClist.Contains(myEpc))
             {
                index = myEPClist.IndexOf(myEpc);
-               myEPClistcount[index] = myEPClistcount[index]+1;
+               myEPClistcount[index] = myEPClistcount[index] + 1;
             }
             else
             {
@@ -204,32 +180,33 @@ namespace SerialTest02
                 myEPClistcount.Add(0);
                 index = myEPClist.IndexOf(myEpc);
             }
-            */
+            
 
             try 
             { 
                 epccount = myEPClistcount[index]; 
                 updateFirebase(epccount);
+                //exportFirebase(epccount);
             }
             catch { }
 
         }
 
         //同步方式處理資料
-        private  void updateFirebase(int cEpcCount)
+        private void updateFirebase(int cEpcCount)
         {
 
             try
             {
                 fclient.Set(myEpc + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi", myRssi);
-                //cEpcCount += 1;
-                FirebaseResponse resp =  fclient.Get(myEpc + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi");
+                fclient.Set(myEpc + "/antenna01/count", cEpcCount);
                 
-                //int respInt = Convert.ToInt32(resp);
-                //Int32.Parse(resp.ToString());
-                
-                
-                
+                FirebaseResponse resp = fclient.Get(myEpc + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi");
+                FirebaseResponse resp2 = fclient.Get("Positioning" + myEpc + "/antenna01/data" + (cEpcCount%10).ToString() + "/Rssi");
+                int todo = resp.ResultAs<int>();
+
+
+
                 var retrievedRssi = Convert.ToInt32(resp.Body);
                 anteenaFistlist[anteenaFirstIndex] = retrievedRssi;
 
@@ -265,27 +242,55 @@ namespace SerialTest02
             catch { }
         }
         */
-        private void positioning()
+        private void exportFirebase(int cEpcCount)
         {
-            deployment pc01;
+            int[] location = new int[2];
+            int aveRssi=0;
+            foreach(string pEpcId in myEPClist)
+            {
+                for(int i = 0;i<9;i++)
+                {
+                    export = fclient.Get("Positioning" + pEpcId + "/antenna01/data" + i.ToString() + "/Rssi");
+                    var retrievedRssi = Convert.ToInt32(export.Body);
+                    aveRssi += retrievedRssi;
+                }
+                aveRssi = aveRssi/10;
+                positioning(aveRssi);
 
-            pc01.x = 0;
-            pc01.y = 0;
-            pc01.r = 0;
 
-            deployment antenna01;
-            deployment antenna02;
+            }
 
-            antenna01.x = 5;
+
+
+        }
+
+
+        private void positioning(int aveRssi)
+        {
+            double xt;
+            double yt;
+            //pc01.r = Math.Sqrt(41);
+
+            deployment antenna01,antenna02,antenna03;
+            
+
+            antenna01.x = 0;
             antenna01.y = 0;
 
-            antenna02.x = 0;
-            antenna02.y = 5;
+            antenna02.x = 5;
+            antenna02.y = 0;
 
-            pc01.r = 0;
-            antenna01.r = 0;
+            antenna03.x = 0;
+            antenna03.y = 5;
+
+            //antenna與帶測物的距離(米)
+            antenna01.r = 0; 
             antenna02.r = 0;
+            antenna03.r = 0;
 
+            xt = (((antenna02.y * (Math.Pow(antenna03.r,2) - Math.Pow(antenna03.x,2) - Math.Pow(antenna01.r,2) ) + antenna03.y * (Math.Pow(antenna01.r,2) - Math.Pow(antenna02.r,2) - antenna02.y + Math.Pow(antenna02.y,2) + Math.Pow(antenna02.x,2))) / (antenna03.x * antenna02.y - antenna02.x * antenna03.y)) * (-0.5));
+
+           
             
 
             
