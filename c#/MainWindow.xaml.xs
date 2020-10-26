@@ -289,7 +289,7 @@ namespace SerialTest02
             antenna03.r = 0;
 
             xt = (((antenna02.y * (Math.Pow(antenna03.r,2) - Math.Pow(antenna03.x,2) - Math.Pow(antenna01.r,2) ) + antenna03.y * (Math.Pow(antenna01.r,2) - Math.Pow(antenna02.r,2) - antenna02.y + Math.Pow(antenna02.y,2) + Math.Pow(antenna02.x,2))) / (antenna03.x * antenna02.y - antenna02.x * antenna03.y)) * (-0.5));
-
+            yt = Math.Sqrt(Math.Pow(antenna01.r, 2) - Math.Pow(xt, 2));
            
             
 
