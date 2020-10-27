@@ -71,13 +71,13 @@ namespace SerialTest02
             public double r;
         }
 
-        struct positioningOffset
-        {
-            public double R1m;
-            public double RSSI;
-            public double fsl;
-        }
-        positioningOffset positionsetting;
+        //struct positioningOffset
+        //{
+        //    public double R1m;
+        //    public double RSSI;
+        //    public double fsl;
+        //}
+        
 
 
 
@@ -102,9 +102,7 @@ namespace SerialTest02
             };
             fclient = new FirebaseClient(fconfig);
 
-
-            positionsetting.R1m = -47;
-            positionsetting.fsl = 3;
+            
 
             
             
@@ -245,17 +243,38 @@ namespace SerialTest02
         private void exportFirebase(int cEpcCount)
         {
             int[] location = new int[2];
-            int aveRssi=0;
+            int aveRssi01=0, aveRssi02 = 0, aveRssi03 = 0;
+
+
             foreach(string pEpcId in myEPClist)
             {
                 for(int i = 0;i<9;i++)
                 {
                     export = fclient.Get("Positioning" + pEpcId + "/antenna01/data" + i.ToString() + "/Rssi");
                     var retrievedRssi = Convert.ToInt32(export.Body);
-                    aveRssi += retrievedRssi;
+                    aveRssi01 += retrievedRssi;
                 }
-                aveRssi = aveRssi/10;
-                positioning(aveRssi);
+
+                for (int i = 0; i < 9; i++)
+                {
+                    export = fclient.Get("Positioning" + pEpcId + "/antenna02/data" + i.ToString() + "/Rssi");
+                    var retrievedRssi = Convert.ToInt32(export.Body);
+                    aveRssi02 += retrievedRssi;
+                }
+
+                for (int i = 0; i < 9; i++)
+                {
+                    export = fclient.Get("Positioning" + pEpcId + "/antenna03/data" + i.ToString() + "/Rssi");
+                    var retrievedRssi = Convert.ToInt32(export.Body);
+                    aveRssi03 += retrievedRssi;
+                }
+
+
+                aveRssi01 = aveRssi01/10;
+                aveRssi02 = aveRssi02/10;
+                aveRssi03 = aveRssi03/10;
+
+                positioning(aveRssi01, aveRssi02, aveRssi03);
 
 
             }
@@ -265,14 +284,19 @@ namespace SerialTest02
         }
 
 
-        private void positioning(int aveRssi)
+        private void positioning(double aRssi01, double aRssi02, double aRssi03)
         {
             double xt;
             double yt;
+
+
+            double R1m = -47;
+            double fsl = 3;
+
             //pc01.r = Math.Sqrt(41);
 
             deployment antenna01,antenna02,antenna03;
-            
+
 
             antenna01.x = 0;
             antenna01.y = 0;
@@ -282,11 +306,12 @@ namespace SerialTest02
 
             antenna03.x = 0;
             antenna03.y = 5;
-
+            
             //antenna與帶測物的距離(米)
-            antenna01.r = 0; 
-            antenna02.r = 0;
-            antenna03.r = 0;
+            //Math.Pow(10, ((R1m - Rssi) / (10.0 * fsl)));
+            antenna01.r = Math.Pow(10, ((R1m - aRssi01) / (10.0 * fsl))); ; 
+            antenna02.r = Math.Pow(10, ((R1m - aRssi02) / (10.0 * fsl))); ;
+            antenna03.r = Math.Pow(10, ((R1m - aRssi03) / (10.0 * fsl))); ;
 
             xt = (((antenna02.y * (Math.Pow(antenna03.r,2) - Math.Pow(antenna03.x,2) - Math.Pow(antenna01.r,2) ) + antenna03.y * (Math.Pow(antenna01.r,2) - Math.Pow(antenna02.r,2) - antenna02.y + Math.Pow(antenna02.y,2) + Math.Pow(antenna02.x,2))) / (antenna03.x * antenna02.y - antenna02.x * antenna03.y)) * (-0.5));
             yt = Math.Sqrt(Math.Pow(antenna01.r, 2) - Math.Pow(xt, 2));
