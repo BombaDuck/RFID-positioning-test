@@ -70,16 +70,16 @@ namespace SerialTest02
             public double y;
             public double r;
         }
-
+        int aveRssi01 = 0, aveRssi02 = 0, aveRssi03 = 0;
         //struct positioningOffset
         //{
         //    public double R1m;
         //    public double RSSI;
         //    public double fsl;
         //}
-        
 
 
+        Reader reader = Reader.Create("eapi:///COM4");
 
         FirebaseClient fclient;
         FirebaseResponse export;
@@ -106,7 +106,7 @@ namespace SerialTest02
 
             
             
-            Reader reader = Reader.Create(uri);
+            
 
             try
             {
@@ -187,24 +187,20 @@ namespace SerialTest02
                 //exportFirebase(epccount);
             }
             catch { }
-
+            Thread.Sleep(1000);
         }
 
         //同步方式處理資料
-        private void updateFirebase(int cEpcCount)
+        private async void updateFirebase(int cEpcCount)
         {
 
             try
             {
-                fclient.Set(myEpc + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi", myRssi);
-                fclient.Set(myEpc + "/antenna01/count", cEpcCount);
-                
-                FirebaseResponse resp = fclient.Get(myEpc + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi");
-                FirebaseResponse resp2 = fclient.Get("Positioning" + myEpc + "/antenna01/data" + (cEpcCount%10).ToString() + "/Rssi");
-                int todo = resp.ResultAs<int>();
+                await fclient.SetAsync(myEpc + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi", myRssi);
+                await fclient.SetAsync("Positioning/" + myEpc + "/antenna03/data" + ((cEpcCount % 10) + 100).ToString() + "/Rssi", myRssi);
+                await fclient.SetAsync(myEpc + "/antenna01/count", cEpcCount);
 
-
-
+                FirebaseResponse resp= fclient.Get(myEpc + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi");
                 var retrievedRssi = Convert.ToInt32(resp.Body);
                 anteenaFistlist[anteenaFirstIndex] = retrievedRssi;
 
@@ -240,36 +236,37 @@ namespace SerialTest02
             catch { }
         }
         */
-        private void exportFirebase(int cEpcCount)
+        
+        private void exportFirebase()
         {
             int[] location = new int[2];
-            int aveRssi01=0, aveRssi02 = 0, aveRssi03 = 0;
+            
 
 
-            foreach(string pEpcId in myEPClist)
-            {
-                for(int i = 0;i<9;i++)
+            //foreach(string pEpcId in myEPClist)
+            //{
+                for(int i = 100; i < 109; i++)
                 {
-                    export = fclient.Get("Positioning" + pEpcId + "/antenna01/data" + i.ToString() + "/Rssi");
+                    FirebaseResponse export = fclient.Get("Positioning/" + myEpc + "/antenna01/data" + i.ToString() + "/Rssi");
                     var retrievedRssi = Convert.ToInt32(export.Body);
                     aveRssi01 += retrievedRssi;
                 }
 
-                for (int i = 0; i < 9; i++)
+                for (int i = 100; i < 109; i++)
                 {
-                    export = fclient.Get("Positioning" + pEpcId + "/antenna02/data" + i.ToString() + "/Rssi");
+                    FirebaseResponse export = fclient.Get("Positioning/" + myEpc + "/antenna02/data" + i.ToString() + "/Rssi");
                     var retrievedRssi = Convert.ToInt32(export.Body);
                     aveRssi02 += retrievedRssi;
                 }
 
-                for (int i = 0; i < 9; i++)
+                for (int i = 100; i < 109; i++)
                 {
-                    export = fclient.Get("Positioning" + pEpcId + "/antenna03/data" + i.ToString() + "/Rssi");
+                    FirebaseResponse export = fclient.Get("Positioning/" + myEpc + "/antenna03/data" + i.ToString() + "/Rssi");
                     var retrievedRssi = Convert.ToInt32(export.Body);
                     aveRssi03 += retrievedRssi;
                 }
 
-
+                
                 aveRssi01 = aveRssi01/10;
                 aveRssi02 = aveRssi02/10;
                 aveRssi03 = aveRssi03/10;
@@ -277,7 +274,7 @@ namespace SerialTest02
                 positioning(aveRssi01, aveRssi02, aveRssi03);
 
 
-            }
+            //}
 
 
 
@@ -301,11 +298,11 @@ namespace SerialTest02
             antenna01.x = 0;
             antenna01.y = 0;
 
-            antenna02.x = 5;
+            antenna02.x = 1;
             antenna02.y = 0;
 
             antenna03.x = 0;
-            antenna03.y = 5;
+            antenna03.y = 1;
             
             //antenna與帶測物的距離(米)
             //Math.Pow(10, ((R1m - Rssi) / (10.0 * fsl)));
@@ -315,23 +312,27 @@ namespace SerialTest02
 
             xt = (((antenna02.y * (Math.Pow(antenna03.r,2) - Math.Pow(antenna03.x,2) - Math.Pow(antenna01.r,2) ) + antenna03.y * (Math.Pow(antenna01.r,2) - Math.Pow(antenna02.r,2) - antenna02.y + Math.Pow(antenna02.y,2) + Math.Pow(antenna02.x,2))) / (antenna03.x * antenna02.y - antenna02.x * antenna03.y)) * (-0.5));
             yt = Math.Sqrt(Math.Pow(antenna01.r, 2) - Math.Pow(xt, 2));
-           
-            
 
-            
+            MessageBox.Show("You are currently at : x = " + xt + " y = " + yt );
+
+
 
 
         }
 
 
-        private async void Button_Click(object sender, RoutedEventArgs e)
+        private void Button_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                await fclient.SetAsync("cstest001/data1", "dudulududadada");
-                MessageBox.Show("done");
-            }
-            catch { }
+            //reader.StopReading();
+            exportFirebase();
+            //reader.StartReading();
+
+            //try
+            //{
+            //    await fclient.SetAsync("cstest001/data1", "dudulududadada");
+            //    MessageBox.Show("done");
+            //}
+            //catch { }
         }
     }
 }
