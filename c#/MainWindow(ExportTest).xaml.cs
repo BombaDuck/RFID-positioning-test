@@ -20,10 +20,12 @@ using System.Threading;
 
 using FireSharp.Config;
 using FireSharp;
+using FireSharp.Response;
+using FireSharp.Interfaces;
+
 using System.Net.Http.Headers;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography;
-using FireSharp.Response;
 using System.Diagnostics.Contracts;
 using System.Linq.Expressions;
 using Newtonsoft.Json;
@@ -43,14 +45,13 @@ namespace SerialTest02
         //string uri = "-v eapi:///COM4 --ant 1,2 --pow 2300";
         string filePath = "C:/Users/FCUCE-2/Documents/Data/tagsAsync.txt";
 
-        int tagcount = 0;
         
         int index;
 
         public string myEpc;
         public int myRssi;
         public int epcCount;
-
+       
         public int anteenaFirstIndex = 0;
         public int anteenaSecondIndex = 0;
         public int anteenaThirdIndex = 0;
@@ -71,6 +72,7 @@ namespace SerialTest02
             public double r;
         }
         int aveRssi01 = 0, aveRssi02 = 0, aveRssi03 = 0;
+        int aveTemperature01 = 0, aveTemperature02 = 0, aveTemperature03 = 0;
         //struct positioningOffset
         //{
         //    public double R1m;
@@ -143,8 +145,7 @@ namespace SerialTest02
             MessageBox.Show("000");
             positioning(0,0,0);
 
-            Thread firebaseExportThread = new Thread(new ThreadStart(exportFirebase));
-            //firebaseExportThread.Start();
+            
 
 
             reader.StartReading();
@@ -188,7 +189,7 @@ namespace SerialTest02
                 //exportFirebase(epccount);
             }
             catch { }
-            Thread.Sleep(1000);
+            //Thread.Sleep(1000);
         }
 
         //同步方式處理資料
@@ -197,14 +198,14 @@ namespace SerialTest02
 
             try
             {
-                await fclient.SetAsync(myEpc + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi", myRssi);
-                await fclient.SetAsync("Positioning/" + myEpc + "/antenna03/data" + ((cEpcCount % 10) + 100).ToString() + "/Rssi", myRssi);
-                await fclient.SetAsync(myEpc + "/antenna01/count", cEpcCount);
+                await fclient.SetAsync(myEpc.Substring(0,2) + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi", myRssi);
+                await fclient.SetAsync("Positioning/" + myEpc.Substring(0, 2) + "/antenna03/data" + ((cEpcCount % 10) + 100).ToString() + "/Rssi", myRssi);
+                await fclient.SetAsync(myEpc.Substring(0, 2) + "/antenna01/count", cEpcCount);
 
-                FirebaseResponse resp= fclient.Get(myEpc + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi");
+                FirebaseResponse resp= fclient.Get(myEpc.Substring(0, 2) + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi");
                 var retrievedRssi = Convert.ToInt32(resp.Body);
                 anteenaFistlist[anteenaFirstIndex] = retrievedRssi;
-
+                 
                 if (anteenaFirstIndex == 9)
                     anteenaFirstIndex = 0;
 
@@ -241,48 +242,82 @@ namespace SerialTest02
         private void exportFirebase()
         {
             myEpc = "001234560000000000000000";
-            int[] location = new int[2];
-            int i = 100;
-
-            while(i<109)
+            //int[] location = new int[2];
+            int a1_count = 0;
+            int a2_count = 0;
+            int a3_count = 0;
+               
+            try
             {
-                if (i == 109)
-                {
-                    i = 100;
-                    
-                }
-                
-                try
-                {
-                    FirebaseResponse export1 = fclient.Get("Positioning/" + myEpc + "/antenna01/Data" + i.ToString() + "/Rssi");
-                    var retrievedRssi1 = Convert.ToInt32(export1.Body);
-                    aveRssi01 += retrievedRssi1;
-                }
-                catch { }
+                var export1 = fclient.Get("Positioning/" + myEpc + "/antenna01");
+                var resultR = export1.ResultAs<Dictionary<string, RssiData>>();
+                var resultT = export1.ResultAs<Dictionary<string, TemperatureData>>();
 
-                try
+                foreach (var item in resultR)
                 {
-                    FirebaseResponse export2 = fclient.Get("Positioning/" + myEpc + "/antenna02/Data" + i.ToString() + "/Rssi");
-                    var retrievedRssi2 = Convert.ToInt32(export2.Body);
-                    aveRssi02 += retrievedRssi2;
+                    var x = item.Value.Rssi;
+                    aveRssi01 += Convert.ToInt32(x);
+                    a1_count += 1;
                 }
-                catch { }
 
-                try
+                foreach (var item in resultT)
                 {
-                    FirebaseResponse export3 = fclient.Get("Positioning/" + myEpc + "/antenna03/Data" + i.ToString() + "/Rssi");
-                    var retrievedRssi3 = Convert.ToInt32(export3.Body);
-                    aveRssi03 += retrievedRssi3;
+                    var x = item.Value.Degree;
+                    aveTemperature01 += Convert.ToInt32(x);
                 }
-                catch { }
-                i++;
-                
+
             }
-            aveRssi01 = aveRssi01 / 10;
-            aveRssi02 = aveRssi02 / 10;
-            aveRssi03 = aveRssi03 / 10;
+            catch { }
+            
+            try
+            {
+                var export2 = fclient.Get("Positioning/" + myEpc + "/antenna02");
+                var resultR = export2.ResultAs<Dictionary<string, RssiData>>();
+                var resultT = export2.ResultAs<Dictionary<string, TemperatureData>>();
 
-            positioning(aveRssi01, aveRssi02, aveRssi03);
+                foreach (var item in resultR)
+                {
+                    var x = item.Value.Rssi;
+                    aveRssi02 += Convert.ToInt32(x);
+                }
+
+                foreach (var item in resultT)
+                {
+                    var x = item.Value.Degree;
+                    aveTemperature02 += Convert.ToInt32(x);
+                }
+            }
+            catch { }
+
+            try
+            {
+                var export3 = fclient.Get("Positioning/" + myEpc + "/antenna03");
+                var resultR = export3.ResultAs<Dictionary<string, RssiData>>();
+                var resultT = export3.ResultAs<Dictionary<string, TemperatureData>>();
+
+                foreach (var item in resultR)
+                {
+                    var x = item.Value.Rssi;
+                    aveRssi03 += Convert.ToInt32(x);
+                }
+
+                foreach (var item in resultT)
+                {
+                    var x = item.Value.Degree;
+                    aveTemperature03 += Convert.ToInt32(x);
+                }
+            }
+            catch { }
+           
+            
+            aveRssi01 /= a1_count;
+            aveRssi02 /= a2_count;
+            aveRssi03 /= a3_count;
+            aveTemperature03 /= a1_count;
+            aveTemperature03 /= a2_count;
+            aveTemperature03 /= a3_count;
+
+            //positioning(aveRssi01, aveRssi02, aveRssi03);
             //Thread.Sleep(5000);
 
             //foreach(string pEpcId in myEPClist)
@@ -337,6 +372,9 @@ namespace SerialTest02
 
         private void Button_Positioning_Click(object sender, RoutedEventArgs e)
         {
+            
+
+
             //myEpc = "001234560000000000000000";
             //try 
             //{ 
@@ -356,6 +394,11 @@ namespace SerialTest02
             //aveRssi02 += retrievedRssi2;
 
             //textBlock_location.Text = "Rssi: " + aveRssi01 + aveRssi02;
+
+            //Thread firebaseExportThread = new Thread(new ThreadStart(exportFirebase));
+            //firebaseExportThread.Start();
+
+
 
 
 
@@ -412,8 +455,7 @@ namespace SerialTest02
             textBlock_location.Text = "You are currently at : x = " + xt + " y = " + yt;
 
 
-
-        }
+            }
 
 
 
