@@ -279,6 +279,7 @@ namespace SerialTest02
                 {
                     var x = item.Value.Rssi;
                     aveRssi02 += Convert.ToInt32(x);
+                    a2_count += 1;
                 }
 
                 foreach (var item in resultT)
@@ -299,6 +300,7 @@ namespace SerialTest02
                 {
                     var x = item.Value.Rssi;
                     aveRssi03 += Convert.ToInt32(x);
+                    a3_count += 1;
                 }
 
                 foreach (var item in resultT)
