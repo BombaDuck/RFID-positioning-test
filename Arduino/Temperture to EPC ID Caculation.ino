@@ -25,3 +25,9 @@ void loop() {
 
 
 }
+/*
+Problem: The read number wasn't able to read directly to be a number of a part of EPC ID
+Solution: To solve this problem, I've noticed that when I convert a number directly to char type, 
+it will be transferred to Hexadecimal UNICODE, so if we divide the number by 10 and multiply it with 16 and add the remainder, 
+then convert it into char, we will be able to get the original number, for example, 82/10=8, 82%10=2, 8*16+2= 130, Hex(130)=82.
+*/
