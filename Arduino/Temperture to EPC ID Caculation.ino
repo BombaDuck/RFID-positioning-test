@@ -22,9 +22,8 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
-
-
 }
+
 /*
 Problem: The read number wasn't able to read directly to be a number of a part of EPC ID
 Solution: To solve this problem, I've noticed that when I convert a number directly to char type, 
