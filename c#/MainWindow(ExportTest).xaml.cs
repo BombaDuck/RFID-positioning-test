@@ -30,6 +30,9 @@ using System.Diagnostics.Contracts;
 using System.Linq.Expressions;
 using Newtonsoft.Json;
 
+using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.LinearAlgebra.Complex;
+
 namespace SerialTest02
 {
     /// <summary>
@@ -59,7 +62,7 @@ namespace SerialTest02
         int[] anteenaFistlist = new int[10];
         int[] anteenaSecondlist = new int[10];
         int[] anteenaThirdlist = new int[10];
-
+        
         
         //ArrayList myEPClist = new ArrayList();
         List<string> myEPClist = new List<string>();
@@ -81,7 +84,7 @@ namespace SerialTest02
         //}
 
 
-        Reader reader = Reader.Create("eapi:///COM4");
+        Reader reader = Reader.Create("eapi:///COM8");
 
         FirebaseClient fclient;
         FirebaseResponse export;
@@ -105,11 +108,6 @@ namespace SerialTest02
             fclient = new FirebaseClient(fconfig);
 
             
-
-            
-            
-            
-
             try
             {
                 reader.Connect();
@@ -126,7 +124,7 @@ namespace SerialTest02
             string[] functionList = reader.ParamList();
             Reader.Region[] regions = (Reader.Region[])reader.ParamGet("/reader/region/supportedRegions");
             reader.ParamSet(functionList[51], Reader.Region.TW);
-            reader.ParamSet(functionList[40], 2700);
+            reader.ParamSet(functionList[40], 100); //max 2700 (27dBm)
 
 
             //reading delay of 1s
@@ -142,16 +140,24 @@ namespace SerialTest02
             reader.ParamSet("/reader/read/plan", simpleplan);
             //reader.ParamSet("/reader/read/plan", 2700);
 
-            MessageBox.Show("000");
+            MessageBox.Show("The antenna has been successfully connected to the PC");
             positioning(0,0,0);
 
-            
-
+            //fclient.SetAsync("Positioning/20210120ff00000000a10000/antenna03/Data100/Rssi", -50);
+            //fclient.SetAsync("Positioning/20210120ff00000000a10000/antenna03/Data101/Rssi", -50);
+            //fclient.SetAsync("Positioning/20210120ff00000000a10000/antenna03/Data102/Rssi", -50);
+            //fclient.SetAsync("Positioning/20210120ff00000000a10000/antenna03/Data103/Rssi", -50);
+            //fclient.SetAsync("Positioning/20210120ff00000000a10000/antenna03/Data104/Rssi", -50);
+            //fclient.SetAsync("Positioning/20210120ff00000000a10000/antenna03/Data105/Rssi", -50);
+            //fclient.SetAsync("Positioning/20210120ff00000000a10000/antenna03/Data106/Rssi", -50);
+            //fclient.SetAsync("Positioning/20210120ff00000000a10000/antenna03/Data107/Rssi", -50);
+            //fclient.SetAsync("Positioning/20210120ff00000000a10000/antenna03/Data108/Rssi", -50);
+            //fclient.SetAsync("Positioning/20210120ff00000000a10000/antenna03/Data109/Rssi", -50);
 
             reader.StartReading();
             reader.TagRead += OnTagRead;
             
-
+            
 
         }
 
@@ -165,10 +171,8 @@ namespace SerialTest02
             myEpc = e.TagReadData.ToString().Substring(4, 24);
             myRssi = e.TagReadData.Rssi;
             //int temp;
-
-
             
-            
+           
             if (myEPClist.Contains(myEpc))
             {
                index = myEPClist.IndexOf(myEpc);
@@ -195,24 +199,24 @@ namespace SerialTest02
         //同步方式處理資料
         private async void updateFirebase(int cEpcCount)
         {
-
             try
             {
-                await fclient.SetAsync(myEpc.Substring(0,2) + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi", myRssi);
-                await fclient.SetAsync("Positioning/" + myEpc.Substring(0, 2) + "/antenna03/data" + ((cEpcCount % 10) + 100).ToString() + "/Rssi", myRssi);
+                await fclient.SetAsync(myEpc.Substring(0, 2) + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi", myRssi);
+                await fclient.SetAsync("Positioning/" + myEpc.Substring(0, 2) + "/antenna01/data" + ((cEpcCount % 10) + 100).ToString() + "/Rssi", myRssi);
                 await fclient.SetAsync(myEpc.Substring(0, 2) + "/antenna01/count", cEpcCount);
 
-                FirebaseResponse resp= fclient.Get(myEpc.Substring(0, 2) + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi");
+                FirebaseResponse resp = fclient.Get(myEpc.Substring(0, 2) + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi");
                 var retrievedRssi = Convert.ToInt32(resp.Body);
                 anteenaFistlist[anteenaFirstIndex] = retrievedRssi;
-                 
+
                 if (anteenaFirstIndex == 9)
                     anteenaFirstIndex = 0;
-
             }
             catch { }
-        }
 
+            
+        }   
+            
         /* 非同步方式處裡資料
         private async void updateFirebaseAsnyc(int cEpcCount)
         {
@@ -241,28 +245,34 @@ namespace SerialTest02
         
         private void exportFirebase()
         {
-            myEpc = "001234560000000000000000";
+            myEpc = "20210120ff00000000a10000";
             //int[] location = new int[2];
             int a1_count = 0;
             int a2_count = 0;
             int a3_count = 0;
-               
+            /*try
+            {
+                var exportid = fclient.Get("ID");
+                var resultID = exportid.ResultAs<Dictionary<string, EPCIDData>>();
+            }
+            catch{ }*/
+
             try
             {
                 var export1 = fclient.Get("Positioning/" + myEpc + "/antenna01");
-                var resultR = export1.ResultAs<Dictionary<string, RssiData>>();
-                var resultT = export1.ResultAs<Dictionary<string, TemperatureData>>();
-
-                foreach (var item in resultR)
+                var resultR1 = export1.ResultAs<Dictionary<string, RssiData>>();
+                var resultT1 = export1.ResultAs<Dictionary<string, TemperatureData>>();
+                
+                foreach (var item in resultR1)
                 {
                     var x = item.Value.Rssi;
                     aveRssi01 += Convert.ToInt32(x);
                     a1_count += 1;
                 }
 
-                foreach (var item in resultT)
+                foreach (var item in resultT1)
                 {
-                    var x = item.Value.Degree;
+                    var x = item.Value.Temperature;
                     aveTemperature01 += Convert.ToInt32(x);
                 }
 
@@ -272,19 +282,19 @@ namespace SerialTest02
             try
             {
                 var export2 = fclient.Get("Positioning/" + myEpc + "/antenna02");
-                var resultR = export2.ResultAs<Dictionary<string, RssiData>>();
-                var resultT = export2.ResultAs<Dictionary<string, TemperatureData>>();
+                var resultR2 = export2.ResultAs<Dictionary<string, RssiData>>();
+                var resultT2 = export2.ResultAs<Dictionary<string, TemperatureData>>();
 
-                foreach (var item in resultR)
+                foreach (var item in resultR2)
                 {
                     var x = item.Value.Rssi;
                     aveRssi02 += Convert.ToInt32(x);
                     a2_count += 1;
                 }
 
-                foreach (var item in resultT)
+                foreach (var item in resultT2)
                 {
-                    var x = item.Value.Degree;
+                    var x = item.Value.Temperature;
                     aveTemperature02 += Convert.ToInt32(x);
                 }
             }
@@ -293,25 +303,25 @@ namespace SerialTest02
             try
             {
                 var export3 = fclient.Get("Positioning/" + myEpc + "/antenna03");
-                var resultR = export3.ResultAs<Dictionary<string, RssiData>>();
-                var resultT = export3.ResultAs<Dictionary<string, TemperatureData>>();
+                var resultR3 = export3.ResultAs<Dictionary<string, RssiData>>();
+                var resultT3 = export3.ResultAs<Dictionary<string, TemperatureData>>();
 
-                foreach (var item in resultR)
+                foreach (var item in resultR3)
                 {
                     var x = item.Value.Rssi;
                     aveRssi03 += Convert.ToInt32(x);
                     a3_count += 1;
                 }
 
-                foreach (var item in resultT)
+                foreach (var item in resultT3)
                 {
-                    var x = item.Value.Degree;
+                    var x = item.Value.Temperature;
                     aveTemperature03 += Convert.ToInt32(x);
                 }
             }
             catch { }
-           
             
+
             aveRssi01 /= a1_count;
             aveRssi02 /= a2_count;
             aveRssi03 /= a3_count;
@@ -319,7 +329,7 @@ namespace SerialTest02
             aveTemperature03 /= a2_count;
             aveTemperature03 /= a3_count;
 
-            //positioning(aveRssi01, aveRssi02, aveRssi03);
+            positioning(aveRssi01, aveRssi02, aveRssi03);
             //Thread.Sleep(5000);
 
             //foreach(string pEpcId in myEPClist)
@@ -368,15 +378,15 @@ namespace SerialTest02
             //}
 
 
-
         }
 
 
         private void Button_Positioning_Click(object sender, RoutedEventArgs e)
         {
+            try {exportFirebase();}
+            catch { }
             
-
-
+          
             //myEpc = "001234560000000000000000";
             //try 
             //{ 
@@ -399,18 +409,13 @@ namespace SerialTest02
 
             //Thread firebaseExportThread = new Thread(new ThreadStart(exportFirebase));
             //firebaseExportThread.Start();
-
-
-
-
-
-            exportFirebase();
+ 
         }
 
         private void Button_Read_Click(object sender, RoutedEventArgs e)
         {
             //reader.StopReading();
-            exportFirebase();
+            //exportFirebase();
             //reader.StartReading();
 
             //try
@@ -430,34 +435,60 @@ namespace SerialTest02
             double R1m = -47;
             double fsl = 3;
 
+            // Define Matrix
+
+            //var mx = Matrix<double>.Build;
+            //var my = Matrix<double>.Build;
+            // var XY = Matrix<double>.Build.Dense(2,1).Multiply(mx,my);
+            
             //pc01.r = Math.Sqrt(41);
 
-            deployment antenna01,antenna02,antenna03;
+            deployment antennaC,antenna01,antenna02;
+            
 
 
-            antenna01.x = 0;
+            antennaC.x = 0;
+            antennaC.y = 0;
+
+            antenna01.x = 2;
             antenna01.y = 0;
 
-            antenna02.x = 1;
-            antenna02.y = 0;
-
-            antenna03.x = 0;
-            antenna03.y = 1;
+            antenna02.x = 0;
+            antenna02.y = 2;
             
             //antenna與帶測物的距離(米)
             //Math.Pow(10, ((R1m - Rssi) / (10.0 * fsl)));
-            antenna01.r = Math.Pow(10, ((R1m - aRssi01) / (10.0 * fsl))); ; 
-            antenna02.r = Math.Pow(10, ((R1m - aRssi02) / (10.0 * fsl))); ;
-            antenna03.r = Math.Pow(10, ((R1m - aRssi03) / (10.0 * fsl))); ;
+            antennaC.r = Math.Pow(10, ((R1m - aRssi01) / (10.0 * fsl))); ;  
+            antenna01.r = Math.Pow(10, ((R1m - aRssi02) / (10.0 * fsl))); ;  
+            antenna02.r = Math.Pow(10, ((R1m - aRssi03) / (10.0 * fsl))); ;
 
-            xt = (((antenna02.y * (Math.Pow(antenna03.r,2) - Math.Pow(antenna03.x,2) - Math.Pow(antenna01.r,2) ) + antenna03.y * (Math.Pow(antenna01.r,2) - Math.Pow(antenna02.r,2) - antenna02.y + Math.Pow(antenna02.y,2) + Math.Pow(antenna02.x,2))) / (antenna03.x * antenna02.y - antenna02.x * antenna03.y)) * (-0.5));
-            yt = Math.Sqrt(Math.Pow(antenna01.r, 2) - Math.Pow(xt, 2));
+            xt = (((antenna01.y * (Math.Pow(antenna02.r,2) - Math.Pow(antenna02.x,2) - Math.Pow(antennaC.r,2) ) + antenna02.y * (Math.Pow(antennaC.r,2) - Math.Pow(antenna01.r,2) - antenna01.y + Math.Pow(antenna01.y,2) + Math.Pow(antenna01.x,2))) / (antenna02.x * antenna01.y - antenna01.x * antenna02.y)) * (-0.5));
+            yt = Math.Sqrt(Math.Pow(antennaC.r, 2) - Math.Pow(xt, 2));
 
+
+            //double[,] mX = { { 2 * (antenna01.x - antennaC.x), 2 * (antenna01.y - antennaC.y) }, { 2 * (antenna02.x - antennaC.x), 2 * (antenna02.y - antennaC.y) } };
+            //double[,] mY = { { Math.Pow(antenna01.x, 2) - Math.Pow(antennaC.x, 2) + Math.Pow(antenna01.y, 2) - Math.Pow(antennaC.y, 2) + Math.Pow(antennaC.r, 2) - Math.Pow(antenna01.r, 2)  }, { Math.Pow(antenna02.x, 2) - Math.Pow(antennaC.x, 2) + Math.Pow(antenna02.y, 2) - Math.Pow(antennaC.y, 2) + Math.Pow(antennaC.r, 2) - Math.Pow(antenna02.r, 2) } };
+            
+            Matrix<double> mx = Matrix<double>.Build.DenseOfArray(new double[,] { { 2 * (antenna01.x - antennaC.x), 2 * (antenna01.y - antennaC.y) }, { 2 * (antenna02.x - antennaC.x), 2 * (antenna02.y - antennaC.y) } });
+            Matrix<double> my = Matrix<double>.Build.DenseOfArray(new double[,] { { Math.Pow(antenna01.x, 2) - Math.Pow(antennaC.x, 2) + Math.Pow(antenna01.y, 2) - Math.Pow(antennaC.y, 2) + Math.Pow(antennaC.r, 2) - Math.Pow(antenna01.r, 2) }, { Math.Pow(antenna02.x, 2) - Math.Pow(antennaC.x, 2) + Math.Pow(antenna02.y, 2) - Math.Pow(antennaC.y, 2) + Math.Pow(antennaC.r, 2) - Math.Pow(antenna02.r, 2) } });
+            Matrix<double> mr = Matrix<double>.Build.DenseOfArray(new double[,] { { 0 },{ 0 } });
+            //mx = mx.Inverse();
+            mx.Inverse().Multiply(my, mr);
+
+
+            //xt = ( 2*(antenna01.x - antennaC.x), 2*(antenna01.y - antennaC.y) ; 2*(antenna02.x - antennaC.x), 2*(antenna02.y - antennaC.y)  );
+            //yt = ( Math.Pow(antenna01.x,2) - Math.Pow(antennaC.x,2) + Math.Pow(antenna01.y,2) - Math.Pow(antennaC.y,2) + Math.Pow(antennaC.r,2) - Math.Pow(antenna01.r,2) ;
+            //       Math.Pow(antenna02.x,2) - Math.Pow(antennaC.x,2) + Math.Pow(antenna02.y,2) - Math.Pow(antennaC.y,2) + Math.Pow(antennaC.r,2) - Math.Pow(antenna02.r,2))
+            //T = xt.inverse()*yt
+
+            double[,] array = new double[2,1];
+            array = mr.ToArray();
             //MessageBox.Show("You are currently at : x = " + xt + " y = " + yt );
-            textBlock_location.Text = "You are currently at : x = " + xt + " y = " + yt;
+            //textBlock_location.Text = "You are currently at : x = " + xt + " y = " + yt;
+            textBlock_location.Text = "You are currently at : x,y = " + array[0,0] + "," + array[1, 0];
+            int x = 1 + 2;
 
-
-            }
+        }
 
 
 
