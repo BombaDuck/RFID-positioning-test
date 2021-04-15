@@ -245,7 +245,7 @@ namespace SerialTest02
         
         private void exportFirebase()
         {
-            myEpc = "20210120ff00000000a10000";
+            string mMyEpc = "20210120ff00000000a10000";
             //int[] location = new int[2];
             int a1_count = 0;
             int a2_count = 0;
@@ -259,7 +259,7 @@ namespace SerialTest02
 
             try
             {
-                var export1 = fclient.Get("Positioning/" + myEpc + "/antenna01");
+                var export1 = fclient.Get("Positioning/" + mMyEpc + "/antenna01");
                 var resultR1 = export1.ResultAs<Dictionary<string, RssiData>>();
                 var resultT1 = export1.ResultAs<Dictionary<string, TemperatureData>>();
                 
@@ -281,7 +281,7 @@ namespace SerialTest02
             
             try
             {
-                var export2 = fclient.Get("Positioning/" + myEpc + "/antenna02");
+                var export2 = fclient.Get("Positioning/" + mMyEpc + "/antenna02");
                 var resultR2 = export2.ResultAs<Dictionary<string, RssiData>>();
                 var resultT2 = export2.ResultAs<Dictionary<string, TemperatureData>>();
 
@@ -302,7 +302,7 @@ namespace SerialTest02
 
             try
             {
-                var export3 = fclient.Get("Positioning/" + myEpc + "/antenna03");
+                var export3 = fclient.Get("Positioning/" + mMyEpc + "/antenna03");
                 var resultR3 = export3.ResultAs<Dictionary<string, RssiData>>();
                 var resultT3 = export3.ResultAs<Dictionary<string, TemperatureData>>();
 
