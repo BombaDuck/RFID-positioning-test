@@ -1,0 +1,38 @@
+<Window x:Class="SerialTest02.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SerialTest02"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="677" IsTabStop="True" Background="White">
+
+    <Grid>
+        <Button x:Name="Read_Button" Content="Read" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="94" Click="Button_Read_Click" Height="29" BorderBrush="#FF0A1D95" Background="#FFE7EC86" Foreground="Black" FontSize="18" FontWeight="Bold">
+            <Button.Style>
+                <Style TargetType="Button">
+                    <Style.Triggers>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect  BlurRadius="5" ShadowDepth="5"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
+        </Button>
+        <DataGrid x:Name="TagDataGrid" HorizontalAlignment="Left" Height="285" Margin="10,100,0,0" VerticalAlignment="Top" Width="647" RenderTransformOrigin="0.5,0.5">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Tag ID"  Binding="{Binding FirstName}"/>
+                <DataGridTextColumn Header="Tag Location X　　　　　　　　" Binding="{Binding LastName}" />
+                <DataGridTextColumn Header="Tag Location Y　　　　　　　　" Binding="{Binding LastName}" />
+            </DataGrid.Columns>
+        </DataGrid>
+        <Button x:Name="Button_Positioning" Content="Positioning" HorizontalAlignment="Left" Margin="10,53,0,0" VerticalAlignment="Top" Width="124" Height="32" FontSize="18" FontWeight="Bold" Click="Button_Positioning_Click"/>
+        <TextBlock HorizontalAlignment="Left" Margin="152,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="75" Width="505" RenderTransformOrigin="0.512,0.692" FontSize="18" Name="textBlock_location" TextAlignment="Center" Cursor="None" Background="#FF7EBBF9" />
+
+
+    </Grid>
+</Window>
