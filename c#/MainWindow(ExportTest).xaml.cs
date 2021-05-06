@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -108,7 +109,57 @@ namespace SerialTest02
             };
             fclient = new FirebaseClient(fconfig);
 
+
+
+            //Testing center
+
+            List<myTagsData> AuthorList = new List<myTagsData>();
+            AuthorList.Add(new myTagsData("Mahesh Chand", 35,35,35));
+            AuthorList.Add(new myTagsData("MAA", 35, 35, 35));
+            if (AuthorList.Exists(x => x.ID=="MA"))
+            {
+                AuthorList.Add(new myTagsData("MaDD", 35, 35, 35));
+            }
             
+            foreach(var author in AuthorList)
+            {
+                TagDataGrid.Items.Add(author);
+            }
+
+            //Testing center
+
+
+
+
+
+
+            //int Rssi = 0;
+            //TagDataGrid.Items.Add(Rssi);
+
+            //fclient.SetAsync("Positioning/a1/antenna01/Data100/Rssi", -50);
+            //fclient.SetAsync("Positioning/a1/antenna01/Data101/Rssi", -50);
+            //fclient.SetAsync("Positioning/a1/antenna01/Data102/Rssi", -50);
+            //fclient.SetAsync("Positioning/a1/antenna01/Data103/Rssi", -50);
+            //fclient.SetAsync("Positioning/a1/antenna01/Data104/Rssi", -50);
+            //fclient.SetAsync("Positioning/a1/antenna01/Data105/Rssi", -50);
+            //fclient.SetAsync("Positioning/a1/antenna01/Data106/Rssi", -50);
+            //fclient.SetAsync("Positioning/a1/antenna01/Data107/Rssi", -50);
+            //fclient.SetAsync("Positioning/a1/antenna01/Data108/Rssi", -50);
+            //fclient.SetAsync("Positioning/a1/antenna01/Data109/Rssi", -50);
+
+            //fclient.SetAsync("Positioning/a1/antenna01/Data100/Temperature", 36);
+            //fclient.SetAsync("Positioning/a1/antenna01/Data101/Temperature", 36);
+            //fclient.SetAsync("Positioning/a1/antenna01/Data102/Temperature", 36);
+            //fclient.SetAsync("Positioning/a1/antenna01/Data103/Temperature", 36);
+            //fclient.SetAsync("Positioning/a1/antenna01/Data104/Temperature", 36);
+            //fclient.SetAsync("Positioning/a1/antenna01/Data105/Temperature", 36);
+            //fclient.SetAsync("Positioning/a1/antenna01/Data106/Temperature", 36);
+            //fclient.SetAsync("Positioning/a1/antenna01/Data107/Temperature", 36);
+            //fclient.SetAsync("Positioning/a1/antenna01/Data108/Temperature", 36);
+            //fclient.SetAsync("Positioning/a1/antenna01/Data109/Temperature", 36);
+
+
+            //Testing center
             try
             {
                 reader.Connect();
@@ -144,24 +195,17 @@ namespace SerialTest02
             MessageBox.Show("The antenna has been successfully connected to the PC");
             positioning(0,0,0);
 
-            //fclient.SetAsync("Positioning/20210120ff00000000a10000/antenna03/Data100/Rssi", -50);
-            //fclient.SetAsync("Positioning/20210120ff00000000a10000/antenna03/Data101/Rssi", -50);
-            //fclient.SetAsync("Positioning/20210120ff00000000a10000/antenna03/Data102/Rssi", -50);
-            //fclient.SetAsync("Positioning/20210120ff00000000a10000/antenna03/Data103/Rssi", -50);
-            //fclient.SetAsync("Positioning/20210120ff00000000a10000/antenna03/Data104/Rssi", -50);
-            //fclient.SetAsync("Positioning/20210120ff00000000a10000/antenna03/Data105/Rssi", -50);
-            //fclient.SetAsync("Positioning/20210120ff00000000a10000/antenna03/Data106/Rssi", -50);
-            //fclient.SetAsync("Positioning/20210120ff00000000a10000/antenna03/Data107/Rssi", -50);
-            //fclient.SetAsync("Positioning/20210120ff00000000a10000/antenna03/Data108/Rssi", -50);
-            //fclient.SetAsync("Positioning/20210120ff00000000a10000/antenna03/Data109/Rssi", -50);
+            
 
             reader.StartReading();
             reader.TagRead += OnTagRead;
-            
-            
+
             
 
+
         }
+
+        
 
         
 
@@ -203,7 +247,7 @@ namespace SerialTest02
             {
                 await fclient.SetAsync(myEpc.Substring(0, 2) + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi", myRssi);
                 await fclient.SetAsync("Positioning/" + myEpc.Substring(0, 2) + "/antenna01/data" + ((cEpcCount % 10) + 100).ToString() + "/Rssi", myRssi);
-                await fclient.SetAsync(myEpc.Substring(0, 2) + "/antenna01/count", cEpcCount);
+                await fclient.SetAsync(myEpc.Substring(0, 2) + "/Temperature", myEpc.Substring(3, 6));
 
                 
 
@@ -244,7 +288,7 @@ namespace SerialTest02
             catch { }
         }
         */
-
+        
         private void exportFirebase()
         {
             string mMyEpc = "20210120ff00000000a10000";
@@ -266,6 +310,17 @@ namespace SerialTest02
 
                 var resultR1 = export1.ResultAs<Dictionary<string, RssiData>>();
                 var resultT1 = export1.ResultAs<Dictionary<string, TemperatureData>>();
+
+                
+
+
+
+
+
+                //Dictionary<string, RssiData> data = JsonConvert.DeserializeObject<Dictionary<string, RssiData>>(export1.Body.ToString());   
+                
+                
+                
                 
                 foreach (var item in resultR1)
                 {
@@ -279,7 +334,7 @@ namespace SerialTest02
                     var x = item.Value.Temperature;
                     aveTemperature01 += Convert.ToInt32(x);
                 }
-
+                
             }
             catch { }
             
@@ -504,7 +559,7 @@ namespace SerialTest02
             //MessageBox.Show("You are currently at : x = " + xt + " y = " + yt );
             //textBlock_location.Text = "You are currently at : x = " + xt + " y = " + yt;
             textBlock_location.Text = "You are currently at :\nx= " + array[0,0] + "\ny= " + array[1, 0];
-            int x = 1 + 2;
+            
 
         }
 
