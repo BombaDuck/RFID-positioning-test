@@ -23,6 +23,7 @@ using FireSharp;
 using FireSharp.Response;
 using FireSharp.Interfaces;
 
+
 using System.Net.Http.Headers;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography;
@@ -158,15 +159,14 @@ namespace SerialTest02
             reader.TagRead += OnTagRead;
             
             
+            
 
         }
 
-
-
+        
 
         private void OnTagRead(object sender, TagReadDataEventArgs e)
         {
-            
             int epccount;
             myEpc = e.TagReadData.ToString().Substring(4, 24);
             myRssi = e.TagReadData.Rssi;
@@ -205,6 +205,8 @@ namespace SerialTest02
                 await fclient.SetAsync("Positioning/" + myEpc.Substring(0, 2) + "/antenna01/data" + ((cEpcCount % 10) + 100).ToString() + "/Rssi", myRssi);
                 await fclient.SetAsync(myEpc.Substring(0, 2) + "/antenna01/count", cEpcCount);
 
+                
+
                 FirebaseResponse resp = fclient.Get(myEpc.Substring(0, 2) + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi");
                 var retrievedRssi = Convert.ToInt32(resp.Body);
                 anteenaFistlist[anteenaFirstIndex] = retrievedRssi;
@@ -215,8 +217,8 @@ namespace SerialTest02
             catch { }
 
             
-        }   
-            
+        }
+
         /* 非同步方式處裡資料
         private async void updateFirebaseAsnyc(int cEpcCount)
         {
@@ -242,7 +244,7 @@ namespace SerialTest02
             catch { }
         }
         */
-        
+
         private void exportFirebase()
         {
             string mMyEpc = "20210120ff00000000a10000";
@@ -257,9 +259,11 @@ namespace SerialTest02
             }
             catch{ }*/
 
+                
             try
             {
                 var export1 = fclient.Get("Positioning/" + mMyEpc + "/antenna01");
+
                 var resultR1 = export1.ResultAs<Dictionary<string, RssiData>>();
                 var resultT1 = export1.ResultAs<Dictionary<string, TemperatureData>>();
                 
@@ -414,6 +418,20 @@ namespace SerialTest02
 
         private void Button_Read_Click(object sender, RoutedEventArgs e)
         {
+             
+            if(Read_Button.Background == Brushes.Orange)
+            {
+                Read_Button.Background = Brushes.Yellow;
+                reader.StartReading();
+                reader.TagRead += OnTagRead;
+            }
+            else
+            {
+                Read_Button.Background = Brushes.Orange;
+                reader.StopReading();
+            }
+            
+
             //reader.StopReading();
             //exportFirebase();
             //reader.StartReading();
@@ -485,7 +503,7 @@ namespace SerialTest02
             array = mr.ToArray();
             //MessageBox.Show("You are currently at : x = " + xt + " y = " + yt );
             //textBlock_location.Text = "You are currently at : x = " + xt + " y = " + yt;
-            textBlock_location.Text = "You are currently at : x,y = " + array[0,0] + "," + array[1, 0];
+            textBlock_location.Text = "You are currently at :\nx= " + array[0,0] + "\ny= " + array[1, 0];
             int x = 1 + 2;
 
         }
