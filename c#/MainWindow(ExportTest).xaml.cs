@@ -54,6 +54,7 @@ namespace SerialTest02
         int index;
 
         public string myEpc;
+        public string myEpcID;
         public int myRssi;
         public int epcCount;
        
@@ -69,6 +70,10 @@ namespace SerialTest02
         //ArrayList myEPClist = new ArrayList();
         List<string> myEPClist = new List<string>();
         List<int> myEPClistcount = new List<int>();
+        bool newEpc = false;
+        //Tag DataGrid顯示用
+        //List<myTagsData> myTagsDataList = new List<myTagsData>();
+
         //
         struct deployment
         {
@@ -76,8 +81,8 @@ namespace SerialTest02
             public double y;
             public double r;
         }
-        int aveRssi01 = 0, aveRssi02 = 0, aveRssi03 = 0;
-        int aveTemperature01 = 0, aveTemperature02 = 0, aveTemperature03 = 0;
+        //int aveRssi01 = 0, aveRssi02 = 0, aveRssi03 = 0;
+        //int aveTemperature01 = 0, aveTemperature02 = 0, aveTemperature03 = 0;
         //struct positioningOffset
         //{
         //    public double R1m;
@@ -89,7 +94,7 @@ namespace SerialTest02
         Reader reader = Reader.Create("eapi:///COM8");
 
         FirebaseClient fclient;
-        FirebaseResponse export;
+        //FirebaseResponse export;
         
 
         public MainWindow()
@@ -109,22 +114,22 @@ namespace SerialTest02
             };
             fclient = new FirebaseClient(fconfig);
 
-
+            
 
             //Testing center
 
-            List<myTagsData> AuthorList = new List<myTagsData>();
-            AuthorList.Add(new myTagsData("Mahesh Chand", 35,35,35));
-            AuthorList.Add(new myTagsData("MAA", 35, 35, 35));
-            if (AuthorList.Exists(x => x.ID=="MA"))
-            {
-                AuthorList.Add(new myTagsData("MaDD", 35, 35, 35));
-            }
+            //List<myTagsData> AuthorList = new List<myTagsData>();
+            //AuthorList.Add(new myTagsData("Mahesh", 35,35,35));
+            //AuthorList.Add(new myTagsData("MAA", 35, 35, 35));
+            //if (AuthorList.Exists(x => x.ID=="MAA"))
+            //{
+            //    AuthorList.Add(new myTagsData("MaDD", 35, 35, 35));
+            //}
+            //int myIndex = AuthorList.FindIndex(p => p.ID == "Mahesh");
+
+            //AuthorList[0] = new myTagsData("MaDdddD", 35, 35, 35);
+
             
-            foreach(var author in AuthorList)
-            {
-                TagDataGrid.Items.Add(author);
-            }
 
             //Testing center
 
@@ -197,8 +202,8 @@ namespace SerialTest02
 
             
 
-            reader.StartReading();
-            reader.TagRead += OnTagRead;
+            //reader.StartReading();
+            //reader.TagRead += OnTagRead;
 
             
 
@@ -213,20 +218,22 @@ namespace SerialTest02
         {
             int epccount;
             myEpc = e.TagReadData.ToString().Substring(4, 24);
+            myEpcID = myEpc.Substring(0, 2);
             myRssi = e.TagReadData.Rssi;
             //int temp;
             
            
-            if (myEPClist.Contains(myEpc))
+            if (myEPClist.Contains(myEpcID))
             {
-               index = myEPClist.IndexOf(myEpc);
+               index = myEPClist.IndexOf(myEpcID);
                myEPClistcount[index] = myEPClistcount[index] + 1;
             }
             else
             {
-                myEPClist.Add(myEpc);
+                myEPClist.Add(myEpcID);
                 myEPClistcount.Add(0);
-                index = myEPClist.IndexOf(myEpc);
+                index = myEPClist.IndexOf(myEpcID);
+                newEpc = true;
             }
             
 
@@ -243,20 +250,29 @@ namespace SerialTest02
         //同步方式處理資料
         private async void updateFirebase(int cEpcCount)
         {
+            if(newEpc==true)
+            {
+                newEpc = false;
+                await fclient.SetAsync("TheIDs/ID0" + myEpcID + "/ID", myEpc);
+                await fclient.SetAsync("TheIDs/ID0" + myEpcID + "/Temperature", myEpc.Substring(2, 4));
+                await fclient.SetAsync("TheIDs/ID0" + myEpcID + "/xlocation", 0);
+                await fclient.SetAsync("TheIDs/ID0" + myEpcID + "/ylocation", 0);
+                //await fclient.SetAsync("TheIDs/ID0",myTagsDataList);
+            }
+
             try
             {
-                await fclient.SetAsync(myEpc.Substring(0, 2) + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi", myRssi);
-                await fclient.SetAsync("Positioning/" + myEpc.Substring(0, 2) + "/antenna01/data" + ((cEpcCount % 10) + 100).ToString() + "/Rssi", myRssi);
-                await fclient.SetAsync(myEpc.Substring(0, 2) + "/Temperature", myEpc.Substring(3, 6));
+                await fclient.SetAsync(myEpcID + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi", myRssi);
+                await fclient.SetAsync("Positioning/" + myEpcID + "/antenna01/data" + ((cEpcCount % 10) + 100).ToString() + "/Rssi", myRssi);
+                //await fclient.SetAsync(myEpcID + "/Temperature", myEpc.Substring(2, 4));
 
-                
+                //FirebaseResponse resp = fclient.Get(myEpc.Substring(0, 2) + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi");
+                //var retrievedRssi = Convert.ToInt32(resp.Body);
+                //anteenaFistlist[anteenaFirstIndex] = retrievedRssi;
 
-                FirebaseResponse resp = fclient.Get(myEpc.Substring(0, 2) + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi");
-                var retrievedRssi = Convert.ToInt32(resp.Body);
-                anteenaFistlist[anteenaFirstIndex] = retrievedRssi;
+                //if (anteenaFirstIndex == 9)
+                //    anteenaFirstIndex = 0;   
 
-                if (anteenaFirstIndex == 9)
-                    anteenaFirstIndex = 0;
             }
             catch { }
 
@@ -291,11 +307,15 @@ namespace SerialTest02
         
         private void exportFirebase()
         {
+            int aveRssi01 = 0, aveRssi02 = 0, aveRssi03 = 0;
             string mMyEpc = "20210120ff00000000a10000";
             //int[] location = new int[2];
             int a1_count = 0;
             int a2_count = 0;
             int a3_count = 0;
+
+            double[,] locationArrayU = new double[2, 1];
+
             /*try
             {
                 var exportid = fclient.Get("ID");
@@ -303,25 +323,55 @@ namespace SerialTest02
             }
             catch{ }*/
 
+
+
+            //anteenaFistlist[anteenaFirstIndex] = retrievedRssi;
+
+            //if (anteenaFirstIndex == 9)
+            //    anteenaFirstIndex = 0;
+
+
+
+            
+
+            //foreach (var author in myTagsDataList)
+            //{   
                 
+            //    //TagDataGrid.Columns.Clear();
+            //    TagDataGrid.Items.Add(author);
+                
+            //}
+
+
+            //List<myTagsData> AuthorList = new List<myTagsData>();
+            //AuthorList.Add(new myTagsData("Mahesh", 35,35,35));
+            //AuthorList.Add(new myTagsData("MAA", 35, 35, 35));
+            //if (AuthorList.Exists(x => x.ID=="MAA"))
+            //{
+            //    AuthorList.Add(new myTagsData("MaDD", 35, 35, 35));
+            //}
+            //int myIndex = AuthorList.FindIndex(p => p.ID == "Mahesh");
+
+            //AuthorList[0] = new myTagsData("MaDdddD", 35, 35, 35);
+
+
+
+
+
             try
             {
                 var export1 = fclient.Get("Positioning/" + mMyEpc + "/antenna01");
 
                 var resultR1 = export1.ResultAs<Dictionary<string, RssiData>>();
-                var resultT1 = export1.ResultAs<Dictionary<string, TemperatureData>>();
+                //var resultT1 = export1.ResultAs<Dictionary<string, TemperatureData>>();
 
-                
-
-
-
-
+                            
 
                 //Dictionary<string, RssiData> data = JsonConvert.DeserializeObject<Dictionary<string, RssiData>>(export1.Body.ToString());   
-                
-                
-                
-                
+
+
+
+
                 foreach (var item in resultR1)
                 {
                     var x = item.Value.Rssi;
@@ -329,11 +379,11 @@ namespace SerialTest02
                     a1_count += 1;
                 }
 
-                foreach (var item in resultT1)
-                {
-                    var x = item.Value.Temperature;
-                    aveTemperature01 += Convert.ToInt32(x);
-                }
+                //foreach (var item in resultT1)
+                //{
+                //    var x = item.Value.Temperature;
+                //    aveTemperature01 += Convert.ToInt32(x);
+                //}
                 
             }
             catch { }
@@ -342,7 +392,7 @@ namespace SerialTest02
             {
                 var export2 = fclient.Get("Positioning/" + mMyEpc + "/antenna02");
                 var resultR2 = export2.ResultAs<Dictionary<string, RssiData>>();
-                var resultT2 = export2.ResultAs<Dictionary<string, TemperatureData>>();
+                //var resultT2 = export2.ResultAs<Dictionary<string, TemperatureData>>();
 
                 foreach (var item in resultR2)
                 {
@@ -351,11 +401,11 @@ namespace SerialTest02
                     a2_count += 1;
                 }
 
-                foreach (var item in resultT2)
-                {
-                    var x = item.Value.Temperature;
-                    aveTemperature02 += Convert.ToInt32(x);
-                }
+                //foreach (var item in resultT2)
+                //{
+                //    var x = item.Value.Temperature;
+                //    aveTemperature02 += Convert.ToInt32(x);
+                //}
             }
             catch { }
 
@@ -363,7 +413,7 @@ namespace SerialTest02
             {
                 var export3 = fclient.Get("Positioning/" + mMyEpc + "/antenna03");
                 var resultR3 = export3.ResultAs<Dictionary<string, RssiData>>();
-                var resultT3 = export3.ResultAs<Dictionary<string, TemperatureData>>();
+                //var resultT3 = export3.ResultAs<Dictionary<string, TemperatureData>>();
 
                 foreach (var item in resultR3)
                 {
@@ -372,11 +422,11 @@ namespace SerialTest02
                     a3_count += 1;
                 }
 
-                foreach (var item in resultT3)
-                {
-                    var x = item.Value.Temperature;
-                    aveTemperature03 += Convert.ToInt32(x);
-                }
+                //foreach (var item in resultT3)
+                //{
+                //    var x = item.Value.Temperature;
+                //    aveTemperature03 += Convert.ToInt32(x);
+                //}
             }
             catch { }
             
@@ -384,11 +434,40 @@ namespace SerialTest02
             aveRssi01 /= a1_count;
             aveRssi02 /= a2_count;
             aveRssi03 /= a3_count;
-            aveTemperature03 /= a1_count;
-            aveTemperature03 /= a2_count;
-            aveTemperature03 /= a3_count;
+            //aveTemperature03 /= a1_count;
+            //aveTemperature03 /= a2_count;
+            //aveTemperature03 /= a3_count;
 
-            positioning(aveRssi01, aveRssi02, aveRssi03);
+            locationArrayU = positioning(aveRssi01, aveRssi02, aveRssi03);
+            updateFirebaseU(mMyEpc.Substring(0, 2), locationArrayU);
+
+
+
+            FirebaseResponse resp = fclient.Get(@"TheIDs");
+            var retrievedIDs = Convert.ToString(resp.Body);
+            List<myTagsData> myTagsDataList = new List<myTagsData>();
+            Dictionary<string, myTagsData> mytagdata = JsonConvert.DeserializeObject<Dictionary<string, myTagsData>>(resp.Body.ToString());
+
+
+            foreach (var item in mytagdata)
+            {
+                //if (myTagsDataList.Exists(x => x.ID.Substring(0, 2) == item.Value.ID.Substring(0, 2)))
+                //{
+                //    //myTagsDataList.Add(new myTagsData(item.Value.ID, item.Value.Temperature, item.Value.xlocation, item.Value.ylocation));
+                //    //myTagsDataList.Remove(item.Value);
+                //    var found = myTagsDataList.FirstOrDefault(c => c.ID == item.Value.ID.Substring(0,2));
+                //    found.xlocation = item.Value.xlocation;
+                //    found.ylocation = item.Value.ylocation;
+                //}
+                //else
+                //{
+                myTagsDataList.Add(new myTagsData(item.Value.ID, item.Value.Temperature, item.Value.xlocation, item.Value.ylocation));
+                //}
+                            }
+            TagDataGrid.ItemsSource = null;
+            TagDataGrid.ItemsSource = myTagsDataList;
+
+
             //Thread.Sleep(5000);
 
             //foreach(string pEpcId in myEPClist)
@@ -499,10 +578,11 @@ namespace SerialTest02
             //catch { }
         }
 
-        private void positioning(double aRssi01, double aRssi02, double aRssi03)
+        
+        private double[,] positioning(double aRssi01, double aRssi02, double aRssi03)
         {
-            double xt;
-            double yt;
+            //double xt;
+            //double yt;
 
 
             double R1m = -47;
@@ -535,8 +615,8 @@ namespace SerialTest02
             antenna01.r = Math.Pow(10, ((R1m - aRssi02) / (10.0 * fsl))); ;  
             antenna02.r = Math.Pow(10, ((R1m - aRssi03) / (10.0 * fsl))); ;
 
-            xt = (((antenna01.y * (Math.Pow(antenna02.r,2) - Math.Pow(antenna02.x,2) - Math.Pow(antennaC.r,2) ) + antenna02.y * (Math.Pow(antennaC.r,2) - Math.Pow(antenna01.r,2) - antenna01.y + Math.Pow(antenna01.y,2) + Math.Pow(antenna01.x,2))) / (antenna02.x * antenna01.y - antenna01.x * antenna02.y)) * (-0.5));
-            yt = Math.Sqrt(Math.Pow(antennaC.r, 2) - Math.Pow(xt, 2));
+            //xt = (((antenna01.y * (Math.Pow(antenna02.r,2) - Math.Pow(antenna02.x,2) - Math.Pow(antennaC.r,2) ) + antenna02.y * (Math.Pow(antennaC.r,2) - Math.Pow(antenna01.r,2) - antenna01.y + Math.Pow(antenna01.y,2) + Math.Pow(antenna01.x,2))) / (antenna02.x * antenna01.y - antenna01.x * antenna02.y)) * (-0.5));
+            //yt = Math.Sqrt(Math.Pow(antennaC.r, 2) - Math.Pow(xt, 2));
 
 
             //double[,] mX = { { 2 * (antenna01.x - antennaC.x), 2 * (antenna01.y - antennaC.y) }, { 2 * (antenna02.x - antennaC.x), 2 * (antenna02.y - antennaC.y) } };
@@ -554,16 +634,26 @@ namespace SerialTest02
             //       Math.Pow(antenna02.x,2) - Math.Pow(antennaC.x,2) + Math.Pow(antenna02.y,2) - Math.Pow(antennaC.y,2) + Math.Pow(antennaC.r,2) - Math.Pow(antenna02.r,2))
             //T = xt.inverse()*yt
 
-            double[,] array = new double[2,1];
-            array = mr.ToArray();
+            double[,] locationArray = new double[2,1];
+            locationArray = mr.ToArray();
             //MessageBox.Show("You are currently at : x = " + xt + " y = " + yt );
             //textBlock_location.Text = "You are currently at : x = " + xt + " y = " + yt;
-            textBlock_location.Text = "You are currently at :\nx= " + array[0,0] + "\ny= " + array[1, 0];
-            
+            textBlock_location.Text = "You are currently at :\nx= " + locationArray[0,0] + "\ny= " + locationArray[1, 0];
+            return locationArray;
 
         }
 
+        private async void updateFirebaseU(string mMyEpc, double[,] locationArrayU)
+        { 
+            try
+            {
+                await fclient.SetAsync("TheIDs/ID0" + mMyEpc.ToUpper() + "/xlocation", locationArrayU[0, 0]);
+                await fclient.SetAsync("TheIDs/ID0" + mMyEpc.ToUpper() + "/ylocation", locationArrayU[1, 0]); 
+            }
+            catch { }
 
+
+        }
 
     }
 
