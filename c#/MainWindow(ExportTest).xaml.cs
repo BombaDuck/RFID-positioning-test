@@ -217,8 +217,8 @@ namespace SerialTest02
         private void OnTagRead(object sender, TagReadDataEventArgs e)
         {
             int epccount;
-            myEpc = e.TagReadData.ToString().Substring(4, 24);
-            myEpcID = myEpc.Substring(0, 2);
+            myEpc = e.TagReadData.ToString().Substring(4, 24).ToUpper();
+            myEpcID = myEpc.Substring(0, 2).ToUpper();
             myRssi = e.TagReadData.Rssi;
             //int temp;
             
@@ -643,12 +643,12 @@ namespace SerialTest02
 
         }
 
-        private async void updateFirebaseU(string mMyEpc, double[,] locationArrayU)
+        private  void updateFirebaseU(string mMyEpc, double[,] locationArrayU)
         { 
             try
             {
-                await fclient.SetAsync("TheIDs/ID0" + mMyEpc.ToUpper() + "/xlocation", locationArrayU[0, 0]);
-                await fclient.SetAsync("TheIDs/ID0" + mMyEpc.ToUpper() + "/ylocation", locationArrayU[1, 0]); 
+                 fclient.Set("TheIDs/ID0" + mMyEpc.ToUpper() + "/xlocation", locationArrayU[0, 0]);
+                 fclient.Set("TheIDs/ID0" + mMyEpc.ToUpper() + "/ylocation", locationArrayU[1, 0]); 
             }
             catch { }
 
