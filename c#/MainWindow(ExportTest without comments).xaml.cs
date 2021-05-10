@@ -363,30 +363,7 @@ namespace SerialTest02
             try {exportFirebase();}
             catch { }
             
-          
-            //myEpc = "001234560000000000000000";
-            //try 
-            //{ 
-            //    while(true)
-            //    {
-            //         FirebaseResponse export1 = fclient.Get("Positioning/" + myEpc + "/antenna01/Data101" + "/Rssi");
-            //         var retrievedRssi1 = Convert.ToInt32(export1.Body);
-            //         aveRssi01 += retrievedRssi1;
-            //    }
-
-            //}
-            //catch { }
-
-
-            //FirebaseResponse export2 = fclient.Get("Positioning/" + myEpc + "/antenna01/Data102" + "/Rssi");
-            //var retrievedRssi2 = Convert.ToInt32(export2.Body);
-            //aveRssi02 += retrievedRssi2;
-
-            //textBlock_location.Text = "Rssi: " + aveRssi01 + aveRssi02;
-
-            //Thread firebaseExportThread = new Thread(new ThreadStart(exportFirebase));
-            //firebaseExportThread.Start();
- 
+         
         }
 
         private void Button_Read_Click(object sender, RoutedEventArgs e)
@@ -403,18 +380,7 @@ namespace SerialTest02
                 Read_Button.Background = Brushes.Orange;
                 reader.StopReading();
             }
-            
 
-            //reader.StopReading();
-            //exportFirebase();
-            //reader.StartReading();
-
-            //try
-            //{
-            //    await fclient.SetAsync("cstest001/data1", "dudulududadada");
-            //    MessageBox.Show("done");
-            //}
-            //catch { }
         }
 
         
