@@ -34,6 +34,7 @@ using Newtonsoft.Json;
 
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Complex;
+using FireSharp.Extensions;
 
 namespace SerialTest02
 {
@@ -57,7 +58,11 @@ namespace SerialTest02
         public string myEpcID;
         public int myRssi;
         public int epcCount;
-       
+
+        bool resultedNull = false;
+
+        bool deployed = false;
+
         public int anteenaFirstIndex = 0;
         public int anteenaSecondIndex = 0;
         public int anteenaThirdIndex = 0;
@@ -114,7 +119,7 @@ namespace SerialTest02
             };
             fclient = new FirebaseClient(fconfig);
 
-            
+
 
             //Testing center
 
@@ -129,7 +134,7 @@ namespace SerialTest02
 
             //AuthorList[0] = new myTagsData("MaDdddD", 35, 35, 35);
 
-            
+
 
             //Testing center
 
@@ -141,16 +146,16 @@ namespace SerialTest02
             //int Rssi = 0;
             //TagDataGrid.Items.Add(Rssi);
 
-            //fclient.SetAsync("Positioning/a1/antenna01/Data100/Rssi", -50);
-            //fclient.SetAsync("Positioning/a1/antenna01/Data101/Rssi", -50);
-            //fclient.SetAsync("Positioning/a1/antenna01/Data102/Rssi", -50);
-            //fclient.SetAsync("Positioning/a1/antenna01/Data103/Rssi", -50);
-            //fclient.SetAsync("Positioning/a1/antenna01/Data104/Rssi", -50);
-            //fclient.SetAsync("Positioning/a1/antenna01/Data105/Rssi", -50);
-            //fclient.SetAsync("Positioning/a1/antenna01/Data106/Rssi", -50);
-            //fclient.SetAsync("Positioning/a1/antenna01/Data107/Rssi", -50);
-            //fclient.SetAsync("Positioning/a1/antenna01/Data108/Rssi", -50);
-            //fclient.SetAsync("Positioning/a1/antenna01/Data109/Rssi", -50);
+            //fclient.SetAsync("Positioning/A1/antenna02/Data100/Rssi", -54);
+            //fclient.SetAsync("Positioning/A1/antenna02/Data101/Rssi", -54);
+            //fclient.SetAsync("Positioning/A1/antenna02/Data102/Rssi", -54);
+            //fclient.SetAsync("Positioning/A1/antenna02/Data103/Rssi", -54);
+            //fclient.SetAsync("Positioning/A1/antenna02/Data104/Rssi", -54);
+            //fclient.SetAsync("Positioning/A1/antenna02/Data105/Rssi", -54);
+            //fclient.SetAsync("Positioning/A1/antenna02/Data106/Rssi", -54);
+            //fclient.SetAsync("Positioning/A1/antenna02/Data107/Rssi", -54);
+            //fclient.SetAsync("Positioning/A1/antenna02/Data108/Rssi", -54);
+            //fclient.SetAsync("Positioning/A1/antenna02/Data109/Rssi", -54);
 
             //fclient.SetAsync("Positioning/a1/antenna01/Data100/Temperature", 36);
             //fclient.SetAsync("Positioning/a1/antenna01/Data101/Temperature", 36);
@@ -308,7 +313,17 @@ namespace SerialTest02
         private void exportFirebase()
         {
             int aveRssi01 = 0, aveRssi02 = 0, aveRssi03 = 0;
-            string mMyEpc = "20210120ff00000000a10000";
+            string mMyEpc = "87";
+            int resultedNullcount = 0;
+            string[] selecteddatastream = new string[10];
+
+            if (TagDataGrid.SelectedItem != null)
+            {
+                selecteddatastream = TagDataGrid.SelectedItem.ToJson().ToString().Split('"');
+                mMyEpc = selecteddatastream[3].Substring(0,2);
+                
+            }
+
             //int[] location = new int[2];
             int a1_count = 0;
             int a2_count = 0;
@@ -361,22 +376,32 @@ namespace SerialTest02
             try
             {
                 var export1 = fclient.Get("Positioning/" + mMyEpc + "/antenna01");
+                if (export1.Body == "null")
+                { 
+                    resultedNull = true;
+                    resultedNullcount += 1;
+                }                    
+                else
+                    resultedNull = false;
 
-                var resultR1 = export1.ResultAs<Dictionary<string, RssiData>>();
-                //var resultT1 = export1.ResultAs<Dictionary<string, TemperatureData>>();
+                if(resultedNull == false)
+                { 
+                    var resultR1 = export1.ResultAs<Dictionary<string, RssiData>>();
+                    //var resultT1 = export1.ResultAs<Dictionary<string, TemperatureData>>();
 
                             
 
-                //Dictionary<string, RssiData> data = JsonConvert.DeserializeObject<Dictionary<string, RssiData>>(export1.Body.ToString());   
+                    //Dictionary<string, RssiData> data = JsonConvert.DeserializeObject<Dictionary<string, RssiData>>(export1.Body.ToString());   
 
 
 
 
-                foreach (var item in resultR1)
-                {
-                    var x = item.Value.Rssi;
-                    aveRssi01 += Convert.ToInt32(x);
-                    a1_count += 1;
+                    foreach (var item in resultR1)
+                    {
+                        var x = item.Value.Rssi;
+                        aveRssi01 += Convert.ToInt32(x);
+                        a1_count += 1;
+                    }
                 }
 
                 //foreach (var item in resultT1)
@@ -391,14 +416,27 @@ namespace SerialTest02
             try
             {
                 var export2 = fclient.Get("Positioning/" + mMyEpc + "/antenna02");
-                var resultR2 = export2.ResultAs<Dictionary<string, RssiData>>();
-                //var resultT2 = export2.ResultAs<Dictionary<string, TemperatureData>>();
-
-                foreach (var item in resultR2)
+                if (export2.Body == "null")
                 {
-                    var x = item.Value.Rssi;
-                    aveRssi02 += Convert.ToInt32(x);
-                    a2_count += 1;
+                    resultedNull = true;
+                    resultedNullcount += 1;
+                }
+                else
+                    resultedNull = false;
+
+                if (resultedNull == false)
+                {
+
+                    var resultR2 = export2.ResultAs<Dictionary<string, RssiData>>();
+                    //var resultT2 = export2.ResultAs<Dictionary<string, TemperatureData>>();
+
+                    foreach (var item in resultR2)
+                    {
+                        var x = item.Value.Rssi;
+                        aveRssi02 += Convert.ToInt32(x);
+                        a2_count += 1;
+                    }
+
                 }
 
                 //foreach (var item in resultT2)
@@ -412,14 +450,28 @@ namespace SerialTest02
             try
             {
                 var export3 = fclient.Get("Positioning/" + mMyEpc + "/antenna03");
-                var resultR3 = export3.ResultAs<Dictionary<string, RssiData>>();
-                //var resultT3 = export3.ResultAs<Dictionary<string, TemperatureData>>();
-
-                foreach (var item in resultR3)
+                if (export3.Body == "null")
                 {
-                    var x = item.Value.Rssi;
-                    aveRssi03 += Convert.ToInt32(x);
-                    a3_count += 1;
+                    resultedNull = true;
+                    resultedNullcount += 1;
+                }
+                else
+                    resultedNull = false;
+
+                if (resultedNull == false)
+                {
+
+                    var resultR3 = export3.ResultAs<Dictionary<string, RssiData>>();
+                    //var resultT3 = export3.ResultAs<Dictionary<string, TemperatureData>>();
+                    if (resultR3 != null)
+                    {
+                        foreach (var item in resultR3)
+                        {
+                            var x = item.Value.Rssi;
+                            aveRssi03 += Convert.ToInt32(x);
+                            a3_count += 1;
+                        }
+                    }
                 }
 
                 //foreach (var item in resultT3)
@@ -429,45 +481,46 @@ namespace SerialTest02
                 //}
             }
             catch { }
+
+            if (resultedNullcount == 0)
+            {
+                aveRssi01 /= a1_count;
+                aveRssi02 /= a2_count;
+                aveRssi03 /= a3_count;
+                //aveTemperature03 /= a1_count;
+                //aveTemperature03 /= a2_count;
+                //aveTemperature03 /= a3_count;
+
+                locationArrayU = positioning(aveRssi01, aveRssi02, aveRssi03);
+                updateFirebaseU(mMyEpc.Substring(0, 2), locationArrayU);
+            }
+            else if (resultedNullcount == 3)
+            {
+
+            }
+            else
+            {
+                MessageBox.Show("所選的標籤資料不完整");
+            }
+
             
-
-            aveRssi01 /= a1_count;
-            aveRssi02 /= a2_count;
-            aveRssi03 /= a3_count;
-            //aveTemperature03 /= a1_count;
-            //aveTemperature03 /= a2_count;
-            //aveTemperature03 /= a3_count;
-
-            locationArrayU = positioning(aveRssi01, aveRssi02, aveRssi03);
-            updateFirebaseU(mMyEpc.Substring(0, 2), locationArrayU);
 
 
 
             FirebaseResponse resp = fclient.Get(@"TheIDs");
-            var retrievedIDs = Convert.ToString(resp.Body);
+            //var retrievedIDs = Convert.ToString(resp.Body);
             List<myTagsData> myTagsDataList = new List<myTagsData>();
             Dictionary<string, myTagsData> mytagdata = JsonConvert.DeserializeObject<Dictionary<string, myTagsData>>(resp.Body.ToString());
-
+            
 
             foreach (var item in mytagdata)
             {
-                //if (myTagsDataList.Exists(x => x.ID.Substring(0, 2) == item.Value.ID.Substring(0, 2)))
-                //{
-                //    //myTagsDataList.Add(new myTagsData(item.Value.ID, item.Value.Temperature, item.Value.xlocation, item.Value.ylocation));
-                //    //myTagsDataList.Remove(item.Value);
-                //    var found = myTagsDataList.FirstOrDefault(c => c.ID == item.Value.ID.Substring(0,2));
-                //    found.xlocation = item.Value.xlocation;
-                //    found.ylocation = item.Value.ylocation;
-                //}
-                //else
-                //{
                 myTagsDataList.Add(new myTagsData(item.Value.ID, item.Value.Temperature, item.Value.xlocation, item.Value.ylocation));
-                //}
-                            }
+            }
             TagDataGrid.ItemsSource = null;
             TagDataGrid.ItemsSource = myTagsDataList;
 
-
+            
             //Thread.Sleep(5000);
 
             //foreach(string pEpcId in myEPClist)
@@ -596,10 +649,9 @@ namespace SerialTest02
             
             //pc01.r = Math.Sqrt(41);
 
+
             deployment antennaC,antenna01,antenna02;
             
-
-
             antennaC.x = 0;
             antennaC.y = 0;
 
@@ -608,6 +660,8 @@ namespace SerialTest02
 
             antenna02.x = 0;
             antenna02.y = 2;
+            
+            
             
             //antenna與帶測物的距離(米)
             //Math.Pow(10, ((R1m - Rssi) / (10.0 * fsl)));
