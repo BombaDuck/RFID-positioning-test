@@ -14,6 +14,9 @@ using FireSharp.Response;
 
 using MathNet.Numerics.LinearAlgebra;
 using FireSharp.Extensions;
+using System.IO.Ports;
+using System.Windows.Controls;
+using System.Collections.ObjectModel;
 
 namespace SerialTest02
 {
@@ -58,7 +61,7 @@ namespace SerialTest02
             public double r;
         }
 
-        char serialnum = '8';
+        
         Reader reader;
 
         FirebaseClient fclient;
@@ -73,53 +76,26 @@ namespace SerialTest02
             {
                 //MessageBox.Show("The connection to database has been successfully established");
             }
-            
 
+            string[] ports = SerialPort.GetPortNames();
+            ObservableCollection<string> avaPorts = new ObservableCollection<string>();
+            foreach (var item in ports)
+            {
+                avaPorts.Add(item);
+            }
+            ComboBox_serial.ItemsSource = avaPorts;
+            
             FirebaseConfig fconfig = new FirebaseConfig
             {
                 AuthSecret = "ihUcWjzjav9Y4ZxY9oqh3xdxC7u9bE1oXT1uGeRl",
                 BasePath = "https://hightemperturelocatingsystem.firebaseio.com/"
             };
+
             fclient = new FirebaseClient(fconfig);
             
 
-            try
-            {
-                reader = Reader.Create("eapi:///COM" + serialnum);
-                reader.Connect();
-                MessageBox.Show("成功連接天線");
-            }
-            catch (IOException e)
-            {
-                MessageBox.Show(e.Message);
-                //Console.WriteLine(e.Message);
-                return;
-            }
-
             
-
-            //select regions and function ([51] = read)
-            string[] functionList = reader.ParamList();
-            Reader.Region[] regions = (Reader.Region[])reader.ParamGet("/reader/region/supportedRegions");
-            reader.ParamSet(functionList[51], Reader.Region.TW);
-            reader.ParamSet(functionList[40], 100); //max 2700 (27dBm)
-
-
-            //reading delay of 1s
-            int timeout = 1000;
-
-            //select the antenna, protocol                 
-            int[] antennaList = null;
-            string str = "1,1";
-            antennaList = Array.ConvertAll(str.Split(','), int.Parse);
-            TagProtocol protocol = TagProtocol.GEN2;
-
-            SimpleReadPlan simpleplan = new SimpleReadPlan(antennaList, protocol, null, null, timeout);
-            reader.ParamSet("/reader/read/plan", simpleplan);
-            //reader.ParamSet("/reader/read/plan", 2700);
-
-            //MessageBox.Show("The antenna has been successfully connected to the PC");
-            positioning(0,0,0);
+           
 
             
 
@@ -523,6 +499,46 @@ namespace SerialTest02
 
         }
 
+        private void Button_Connect_Click(object sender, RoutedEventArgs e)
+        {
+            string serialnum = ComboBox_serial.SelectedItem.ToString();
+            try
+            {
+                reader = Reader.Create("eapi:///" + serialnum);
+                reader.Connect();
+                MessageBox.Show("成功連接天線");
+            }
+            catch (IOException connectE)
+            {
+                MessageBox.Show(connectE.Message);
+                //Console.WriteLine(e.Message);
+                return;
+            }
+
+
+
+            //select regions and function ([51] = read)
+            string[] functionList = reader.ParamList();
+            Reader.Region[] regions = (Reader.Region[])reader.ParamGet("/reader/region/supportedRegions");
+            reader.ParamSet(functionList[51], Reader.Region.TW);
+            reader.ParamSet(functionList[40], 100); //max 2700 (27dBm)
+
+
+            //reading delay of 1s
+            int timeout = 1000;
+
+            //select the antenna, protocol                 
+            int[] antennaList = null;
+            string str = "1,1";
+            antennaList = Array.ConvertAll(str.Split(','), int.Parse);
+            TagProtocol protocol = TagProtocol.GEN2;
+
+            SimpleReadPlan simpleplan = new SimpleReadPlan(antennaList, protocol, null, null, timeout);
+            reader.ParamSet("/reader/read/plan", simpleplan);
+            //reader.ParamSet("/reader/read/plan", 2700);
+
+            //MessageBox.Show("The antenna has been successfully connected to the PC");
+        }
     }
 
 }
