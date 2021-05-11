@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="677" IsTabStop="True" Background="White">
 
-    <Grid>
+    <Grid Margin="-1,0,1,0">
         <Button x:Name="Read_Button" Content="Read" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="94" Click="Button_Read_Click" Height="29" BorderBrush="#FF0A1D95" Background="#FFE7EC86" Foreground="Black" FontSize="18" FontWeight="Bold">
             <Button.Style>
                 <Style TargetType="Button">
@@ -23,7 +23,7 @@
                 </Style>
             </Button.Style>
         </Button>
-        <DataGrid x:Name="TagDataGrid" HorizontalAlignment="Left" Height="285" Margin="10,100,0,0" VerticalAlignment="Top" Width="647" RenderTransformOrigin="0.5,0.5">
+        <DataGrid x:Name="TagDataGrid" HorizontalAlignment="Left" Height="285" Margin="10,100,0,0" VerticalAlignment="Top" Width="647" RenderTransformOrigin="0.5,0.5" CanUserAddRows="false " AutoGenerateColumns="False">
 
             <!-- Font color/style-->
             <DataGrid.Resources>
@@ -31,17 +31,15 @@
                     <Setter Property="Background" Value="AntiqueWhite"/>
                     <Setter Property="BorderThickness" Value="0,0,1,1"/>
                     <Setter Property="BorderBrush" Value="DarkGray"/>
-
-
                 </Style>
             </DataGrid.Resources>
             
             <!-- Column setting-->
             <DataGrid.Columns>
-                <DataGridTextColumn Header=" Tag ID"  Binding="{Binding FirstName}"/>
-                <DataGridTextColumn Header=" Temperature"  Binding="{Binding FirstName}"/>
-                <DataGridTextColumn Header=" Tag Location X" Width="180" Binding="{Binding LastName}" />
-                <DataGridTextColumn Header=" Tag Location Y" Width="*" Binding="{Binding LastName}" />
+                <DataGridTextColumn Header=" Tag ID" Binding="{Binding ID}" Width="180"  />
+                <DataGridTextColumn Header=" Temperature" Binding="{Binding Temperature}" Width="85"  />
+                <DataGridTextColumn Header=" Tag Location X" Binding="{Binding xlocation}" Width="180"  />
+                <DataGridTextColumn Header=" Tag Location Y" Binding="{Binding ylocation}" Width="*"  />
             </DataGrid.Columns>
         </DataGrid>
         <Button x:Name="Button_Positioning" Content="Positioning" HorizontalAlignment="Left" Margin="10,53,0,0" VerticalAlignment="Top" Width="124" Height="32" FontSize="18" FontWeight="Bold" Click="Button_Positioning_Click"/>
@@ -50,4 +48,3 @@
 
     </Grid>
 </Window>
-
