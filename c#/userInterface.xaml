@@ -8,7 +8,7 @@
         Title="MainWindow" Height="450" Width="677" IsTabStop="True" Background="White">
 
     <Grid Margin="-1,0,1,0">
-        <Button x:Name="Read_Button" Content="Read" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="94" Click="Button_Read_Click" Height="29" BorderBrush="#FF0A1D95" Background="#FFE7EC86" Foreground="Black" FontSize="18" FontWeight="Bold">
+        <Button x:Name="Read_Button" Content="Read" HorizontalAlignment="Left" Margin="10,53,0,0" VerticalAlignment="Top" Width="94" Click="Button_Read_Click" Height="32" BorderBrush="#FFFDFDFD" Background="#FFE7EC86" Foreground="Black" FontSize="18" FontWeight="Bold">
             <Button.Style>
                 <Style TargetType="Button">
                     <Style.Triggers>
@@ -33,7 +33,7 @@
                     <Setter Property="BorderBrush" Value="DarkGray"/>
                 </Style>
             </DataGrid.Resources>
-            
+
             <!-- Column setting-->
             <DataGrid.Columns>
                 <DataGridTextColumn Header=" Tag ID" Binding="{Binding ID}" Width="180"  />
@@ -42,8 +42,10 @@
                 <DataGridTextColumn Header=" Tag Location Y" Binding="{Binding ylocation}" Width="*"  />
             </DataGrid.Columns>
         </DataGrid>
-        <Button x:Name="Button_Positioning" Content="Positioning" HorizontalAlignment="Left" Margin="10,53,0,0" VerticalAlignment="Top" Width="124" Height="32" FontSize="18" FontWeight="Bold" Click="Button_Positioning_Click"/>
-        <TextBlock HorizontalAlignment="Left" Margin="152,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="75" Width="505" RenderTransformOrigin="0.512,0.692" FontSize="18" Name="textBlock_location" TextAlignment="Center" Cursor="None" Background="#FF7EBBF9" />
+        <Button x:Name="Button_Positioning" Content="Positioning" HorizontalAlignment="Left" Margin="129,53,0,0" VerticalAlignment="Top" Width="124" Height="32" FontSize="18" FontWeight="Bold" Click="Button_Positioning_Click" BorderBrush="#FFFFFFFC"/>
+        <TextBlock HorizontalAlignment="Left" Margin="258,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="75" Width="399" RenderTransformOrigin="0.512,0.692" FontSize="18" Name="textBlock_location" TextAlignment="Center" Cursor="None" Background="#FF7EBBF9" />
+        <ComboBox x:Name="ComboBox_serial" HorizontalAlignment="Left" Margin="129,10,0,0" VerticalAlignment="Top" Width="124" Height="32" BorderBrush="#FFF9F7F7" FontWeight="Bold" ItemsSource="{Binding avaPorts}" FontSize="20"  />
+        <Button x:Name="Button_Connect" Content="Connect" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="94" Height="32" FontSize="18" FontWeight="Bold" BorderBrush="{x:Null}" Background="#FF96D462" Click="Button_Connect_Click"/>
 
 
     </Grid>
