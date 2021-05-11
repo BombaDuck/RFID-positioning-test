@@ -1,39 +1,18 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Collections;
 
 using ThingMagic;
 using System.IO;
-using System.Threading;
 
 using FireSharp.Config;
 using FireSharp;
 using FireSharp.Response;
-using FireSharp.Interfaces;
 
-
-using System.Net.Http.Headers;
-using System.Security.Cryptography.X509Certificates;
-using System.Security.Cryptography;
-using System.Diagnostics.Contracts;
-using System.Linq.Expressions;
-using Newtonsoft.Json;
 
 using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics.LinearAlgebra.Complex;
 using FireSharp.Extensions;
 
 namespace SerialTest02
@@ -46,10 +25,10 @@ namespace SerialTest02
     public partial class MainWindow : Window
     {
         //properties
-        int read_button_clicked = 0;
-        string uri = "eapi:///COM4";
+        //int read_button_clicked = 0;
+        //string uri = "eapi:///COM4";
         //string uri = "-v eapi:///COM4 --ant 1,2 --pow 2300";
-        string filePath = "C:/Users/FCUCE-2/Documents/Data/tagsAsync.txt";
+        //string filePath = "C:/Users/FCUCE-2/Documents/Data/tagsAsync.txt";
 
         
         int index;
@@ -61,42 +40,26 @@ namespace SerialTest02
 
         bool resultedNull = false;
 
-        bool deployed = false;
-
         public int anteenaFirstIndex = 0;
         public int anteenaSecondIndex = 0;
         public int anteenaThirdIndex = 0;
-
-        int[] anteenaFistlist = new int[10];
-        int[] anteenaSecondlist = new int[10];
-        int[] anteenaThirdlist = new int[10];
         
         
         //ArrayList myEPClist = new ArrayList();
         List<string> myEPClist = new List<string>();
         List<int> myEPClistcount = new List<int>();
         bool newEpc = false;
-        //Tag DataGrid顯示用
-        //List<myTagsData> myTagsDataList = new List<myTagsData>();
 
-        //
+
         struct deployment
         {
             public double x;
             public double y;
             public double r;
         }
-        //int aveRssi01 = 0, aveRssi02 = 0, aveRssi03 = 0;
-        //int aveTemperature01 = 0, aveTemperature02 = 0, aveTemperature03 = 0;
-        //struct positioningOffset
-        //{
-        //    public double R1m;
-        //    public double RSSI;
-        //    public double fsl;
-        //}
 
-
-        Reader reader = Reader.Create("eapi:///COM8");
+        char serialnum = '8';
+        Reader reader;
 
         FirebaseClient fclient;
         //FirebaseResponse export;
@@ -118,65 +81,18 @@ namespace SerialTest02
                 BasePath = "https://hightemperturelocatingsystem.firebaseio.com/"
             };
             fclient = new FirebaseClient(fconfig);
+            
 
-
-
-            //Testing center
-
-            //List<myTagsData> AuthorList = new List<myTagsData>();
-            //AuthorList.Add(new myTagsData("Mahesh", 35,35,35));
-            //AuthorList.Add(new myTagsData("MAA", 35, 35, 35));
-            //if (AuthorList.Exists(x => x.ID=="MAA"))
-            //{
-            //    AuthorList.Add(new myTagsData("MaDD", 35, 35, 35));
-            //}
-            //int myIndex = AuthorList.FindIndex(p => p.ID == "Mahesh");
-
-            //AuthorList[0] = new myTagsData("MaDdddD", 35, 35, 35);
-
-
-
-            //Testing center
-
-
-
-
-
-
-            //int Rssi = 0;
-            //TagDataGrid.Items.Add(Rssi);
-
-            //fclient.SetAsync("Positioning/A1/antenna02/Data100/Rssi", -54);
-            //fclient.SetAsync("Positioning/A1/antenna02/Data101/Rssi", -54);
-            //fclient.SetAsync("Positioning/A1/antenna02/Data102/Rssi", -54);
-            //fclient.SetAsync("Positioning/A1/antenna02/Data103/Rssi", -54);
-            //fclient.SetAsync("Positioning/A1/antenna02/Data104/Rssi", -54);
-            //fclient.SetAsync("Positioning/A1/antenna02/Data105/Rssi", -54);
-            //fclient.SetAsync("Positioning/A1/antenna02/Data106/Rssi", -54);
-            //fclient.SetAsync("Positioning/A1/antenna02/Data107/Rssi", -54);
-            //fclient.SetAsync("Positioning/A1/antenna02/Data108/Rssi", -54);
-            //fclient.SetAsync("Positioning/A1/antenna02/Data109/Rssi", -54);
-
-            //fclient.SetAsync("Positioning/a1/antenna01/Data100/Temperature", 36);
-            //fclient.SetAsync("Positioning/a1/antenna01/Data101/Temperature", 36);
-            //fclient.SetAsync("Positioning/a1/antenna01/Data102/Temperature", 36);
-            //fclient.SetAsync("Positioning/a1/antenna01/Data103/Temperature", 36);
-            //fclient.SetAsync("Positioning/a1/antenna01/Data104/Temperature", 36);
-            //fclient.SetAsync("Positioning/a1/antenna01/Data105/Temperature", 36);
-            //fclient.SetAsync("Positioning/a1/antenna01/Data106/Temperature", 36);
-            //fclient.SetAsync("Positioning/a1/antenna01/Data107/Temperature", 36);
-            //fclient.SetAsync("Positioning/a1/antenna01/Data108/Temperature", 36);
-            //fclient.SetAsync("Positioning/a1/antenna01/Data109/Temperature", 36);
-
-
-            //Testing center
             try
             {
+                reader = Reader.Create("eapi:///COM" + serialnum);
                 reader.Connect();
+                MessageBox.Show("成功連接天線");
             }
             catch (IOException e)
             {
-                Console.WriteLine(e.Message);
+                MessageBox.Show(e.Message);
+                //Console.WriteLine(e.Message);
                 return;
             }
 
@@ -202,22 +118,17 @@ namespace SerialTest02
             reader.ParamSet("/reader/read/plan", simpleplan);
             //reader.ParamSet("/reader/read/plan", 2700);
 
-            MessageBox.Show("The antenna has been successfully connected to the PC");
+            //MessageBox.Show("The antenna has been successfully connected to the PC");
             positioning(0,0,0);
 
             
 
             //reader.StartReading();
             //reader.TagRead += OnTagRead;
-
-            
-
-
+                   
         }
 
-        
-
-        
+                
 
         private void OnTagRead(object sender, TagReadDataEventArgs e)
         {
@@ -269,46 +180,11 @@ namespace SerialTest02
             {
                 await fclient.SetAsync(myEpcID + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi", myRssi);
                 await fclient.SetAsync("Positioning/" + myEpcID + "/antenna01/data" + ((cEpcCount % 10) + 100).ToString() + "/Rssi", myRssi);
-                //await fclient.SetAsync(myEpcID + "/Temperature", myEpc.Substring(2, 4));
-
-                //FirebaseResponse resp = fclient.Get(myEpc.Substring(0, 2) + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi");
-                //var retrievedRssi = Convert.ToInt32(resp.Body);
-                //anteenaFistlist[anteenaFirstIndex] = retrievedRssi;
-
-                //if (anteenaFirstIndex == 9)
-                //    anteenaFirstIndex = 0;   
-
             }
             catch { }
 
             
         }
-
-        /* 非同步方式處裡資料
-        private async void updateFirebaseAsnyc(int cEpcCount)
-        {
-
-            try
-            {
-                await fclient.SetAsync(myEpc + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi", myRssi);
-                //cEpcCount += 1;
-                FirebaseResponse resp = await fclient.GetAsync(myEpc + "/antenna01/data" + (100000 + cEpcCount).ToString() + "/Rssi");
-
-                //int respInt = Convert.ToInt32(resp);
-                //Int32.Parse(resp.ToString());
-
-
-
-                var aadd = Convert.ToInt32(resp.Body);
-                anteeneFistlist[anteenaFirstIndex] = aadd;
-
-                if (anteenaFirstIndex == 9)
-                    anteenaFirstIndex = 0;
-
-            }
-            catch { }
-        }
-        */
         
         private void exportFirebase()
         {
@@ -324,58 +200,18 @@ namespace SerialTest02
                 
             }
 
-            //int[] location = new int[2];
+
             int a1_count = 0;
             int a2_count = 0;
             int a3_count = 0;
 
+
             double[,] locationArrayU = new double[2, 1];
-
-            /*try
-            {
-                var exportid = fclient.Get("ID");
-                var resultID = exportid.ResultAs<Dictionary<string, EPCIDData>>();
-            }
-            catch{ }*/
-
-
-
-            //anteenaFistlist[anteenaFirstIndex] = retrievedRssi;
-
-            //if (anteenaFirstIndex == 9)
-            //    anteenaFirstIndex = 0;
-
-
-
-            
-
-            //foreach (var author in myTagsDataList)
-            //{   
-                
-            //    //TagDataGrid.Columns.Clear();
-            //    TagDataGrid.Items.Add(author);
-                
-            //}
-
-
-            //List<myTagsData> AuthorList = new List<myTagsData>();
-            //AuthorList.Add(new myTagsData("Mahesh", 35,35,35));
-            //AuthorList.Add(new myTagsData("MAA", 35, 35, 35));
-            //if (AuthorList.Exists(x => x.ID=="MAA"))
-            //{
-            //    AuthorList.Add(new myTagsData("MaDD", 35, 35, 35));
-            //}
-            //int myIndex = AuthorList.FindIndex(p => p.ID == "Mahesh");
-
-            //AuthorList[0] = new myTagsData("MaDdddD", 35, 35, 35);
-
-
-
-
 
             try
             {
                 var export1 = fclient.Get("Positioning/" + mMyEpc + "/antenna01");
+
                 if (export1.Body == "null")
                 { 
                     resultedNull = true;
@@ -387,14 +223,6 @@ namespace SerialTest02
                 if(resultedNull == false)
                 { 
                     var resultR1 = export1.ResultAs<Dictionary<string, RssiData>>();
-                    //var resultT1 = export1.ResultAs<Dictionary<string, TemperatureData>>();
-
-                            
-
-                    //Dictionary<string, RssiData> data = JsonConvert.DeserializeObject<Dictionary<string, RssiData>>(export1.Body.ToString());   
-
-
-
 
                     foreach (var item in resultR1)
                     {
@@ -403,12 +231,6 @@ namespace SerialTest02
                         a1_count += 1;
                     }
                 }
-
-                //foreach (var item in resultT1)
-                //{
-                //    var x = item.Value.Temperature;
-                //    aveTemperature01 += Convert.ToInt32(x);
-                //}
                 
             }
             catch { }
@@ -416,6 +238,7 @@ namespace SerialTest02
             try
             {
                 var export2 = fclient.Get("Positioning/" + mMyEpc + "/antenna02");
+
                 if (export2.Body == "null")
                 {
                     resultedNull = true;
@@ -428,7 +251,6 @@ namespace SerialTest02
                 {
 
                     var resultR2 = export2.ResultAs<Dictionary<string, RssiData>>();
-                    //var resultT2 = export2.ResultAs<Dictionary<string, TemperatureData>>();
 
                     foreach (var item in resultR2)
                     {
@@ -438,12 +260,6 @@ namespace SerialTest02
                     }
 
                 }
-
-                //foreach (var item in resultT2)
-                //{
-                //    var x = item.Value.Temperature;
-                //    aveTemperature02 += Convert.ToInt32(x);
-                //}
             }
             catch { }
 
@@ -496,7 +312,7 @@ namespace SerialTest02
             }
             else if (resultedNullcount == 3)
             {
-
+                
             }
             else
             {
@@ -571,7 +387,6 @@ namespace SerialTest02
 
         }
 
-
         private void Button_Positioning_Click(object sender, RoutedEventArgs e)
         {
             try {exportFirebase();}
@@ -605,17 +420,17 @@ namespace SerialTest02
 
         private void Button_Read_Click(object sender, RoutedEventArgs e)
         {
-             
+            
             if(Read_Button.Background == Brushes.Orange)
+            {
+                Read_Button.Background = Brushes.Orange;
+                reader.StopReading();
+            }
+            else
             {
                 Read_Button.Background = Brushes.Yellow;
                 reader.StartReading();
                 reader.TagRead += OnTagRead;
-            }
-            else
-            {
-                Read_Button.Background = Brushes.Orange;
-                reader.StopReading();
             }
             
 
@@ -631,7 +446,6 @@ namespace SerialTest02
             //catch { }
         }
 
-        
         private double[,] positioning(double aRssi01, double aRssi02, double aRssi03)
         {
             //double xt;
