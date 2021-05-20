@@ -41,7 +41,6 @@ namespace SerialTest02
         public int myRssi;
         public int epcCount;
 
-        bool resultedNull = false;
         bool connected = false;
 
         public int anteenaFirstIndex = 0;
@@ -164,22 +163,24 @@ namespace SerialTest02
         
         private void exportFirebase()
         {
-            int aveRssi01 = 0, aveRssi02 = 0, aveRssi03 = 0;
+            bool resultedNull_central = false;
+            bool resultedNull_others = false;
+
+            int[] aveRssi = new int[3] { 0,0,0};
             string mMyEpc = "87";
-            int resultedNullcount = 0;
             string[] selecteddatastream = new string[10];
+
+            int[] rssi_count = new int[3] { 0,0,0};
+
 
             if (TagDataGrid.SelectedItem != null)
             {
                 selecteddatastream = TagDataGrid.SelectedItem.ToJson().ToString().Split('"');
                 mMyEpc = selecteddatastream[3].Substring(0,2);
-                
             }
 
 
-            int a1_count = 0;
-            int a2_count = 0;
-            int a3_count = 0;
+
 
 
             double[,] locationArrayU = new double[2, 1];
@@ -187,108 +188,65 @@ namespace SerialTest02
             try
             {
                 var export1 = fclient.Get("Positioning/" + mMyEpc + "/antenna01");
-
-                if (export1.Body == "null")
-                { 
-                    resultedNull = true;
-                    resultedNullcount += 2;
-                }                    
-                else
-                    resultedNull = false;
-
-                if(resultedNull == false)
-                { 
-                    var resultR1 = export1.ResultAs<Dictionary<string, RssiData>>();
+                var resultR1 = export1.ResultAs<Dictionary<string, RssiData>>();
 
                     foreach (var item in resultR1)
                     {
                         var x = item.Value.Rssi;
-                        aveRssi01 += Convert.ToInt32(x);
-                        a1_count += 1;
+                        aveRssi[0] += Convert.ToInt32(x);
+                        rssi_count[0] += 1;
                     }
-                }
+                
                 
             }
-            catch { }
+            catch { resultedNull_central = true; }
             
             try
             {
                 var export2 = fclient.Get("Positioning/" + mMyEpc + "/antenna02");
+                var resultR2 = export2.ResultAs<Dictionary<string, RssiData>>();
 
-                if (export2.Body == "null")
+                foreach (var item in resultR2)
                 {
-                    resultedNull = true;
-                    resultedNullcount += 1;
+                    var x = item.Value.Rssi;
+                    aveRssi[1] += Convert.ToInt32(x);
+                    rssi_count[1] += 1;
                 }
-                else
-                    resultedNull = false;
 
-                if (resultedNull == false)
-                {
-
-                    var resultR2 = export2.ResultAs<Dictionary<string, RssiData>>();
-
-                    foreach (var item in resultR2)
-                    {
-                        var x = item.Value.Rssi;
-                        aveRssi02 += Convert.ToInt32(x);
-                        a2_count += 1;
-                    }
-
-                }
+                
             }
-            catch { }
+            catch { resultedNull_others = true; }
 
             try
             {
                 var export3 = fclient.Get("Positioning/" + mMyEpc + "/antenna03");
-                if (export3.Body == "null")
-                {
-                    resultedNull = true;
-                    resultedNullcount += 1;
-                }
-                else
-                    resultedNull = false;
+                var resultR3 = export3.ResultAs<Dictionary<string, RssiData>>();
 
-                if (resultedNull == false)
+                foreach (var item in resultR3)
                 {
-
-                    var resultR3 = export3.ResultAs<Dictionary<string, RssiData>>();
-                    //var resultT3 = export3.ResultAs<Dictionary<string, TemperatureData>>();
-                    if (resultR3 != null)
-                    {
-                        foreach (var item in resultR3)
-                        {
-                            var x = item.Value.Rssi;
-                            aveRssi03 += Convert.ToInt32(x);
-                            a3_count += 1;
-                        }
-                    }
+                    var x = item.Value.Rssi;
+                    aveRssi[2] += Convert.ToInt32(x);
+                    rssi_count[2] += 1;
                 }
 
-                //foreach (var item in resultT3)
-                //{
-                //    var x = item.Value.Temperature;
-                //    aveTemperature03 += Convert.ToInt32(x);
-                //}
             }
-            catch { }
+            catch { resultedNull_others = true; }
 
-            if (resultedNullcount == 0)
+            if (resultedNull_central == false && resultedNull_others == false)
             {
-                aveRssi01 /= a1_count;
-                aveRssi02 /= a2_count;
-                aveRssi03 /= a3_count;
+                aveRssi[0] /= rssi_count[0];
+                aveRssi[1] /= rssi_count[1];
+                aveRssi[2] /= rssi_count[2];
                 //aveTemperature03 /= a1_count;
                 //aveTemperature03 /= a2_count;
                 //aveTemperature03 /= a3_count;
 
-                locationArrayU = positioning(aveRssi01, aveRssi02, aveRssi03);
+                locationArrayU = positioning(aveRssi[0], aveRssi[1], aveRssi[2]);
                 updateFirebaseU(mMyEpc.Substring(0, 2), locationArrayU);
             }
-            else if (resultedNullcount == 4)
+            else if (resultedNull_central == true)
             {
-                MessageBox.Show("所選的標籤資料不完整");
+                //MessageBox.Show("所選的標籤資料不完整");
             }
             else 
             {
