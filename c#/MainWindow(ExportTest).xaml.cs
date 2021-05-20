@@ -42,6 +42,7 @@ namespace SerialTest02
         public int epcCount;
 
         bool resultedNull = false;
+        bool connected = false;
 
         public int anteenaFirstIndex = 0;
         public int anteenaSecondIndex = 0;
@@ -51,7 +52,6 @@ namespace SerialTest02
         //ArrayList myEPClist = new ArrayList();
         List<string> myEPClist = new List<string>();
         List<int> myEPClistcount = new List<int>();
-        bool newEpc = false;
 
 
         struct deployment
@@ -104,10 +104,11 @@ namespace SerialTest02
                    
         }
 
-                
+        
 
         private void OnTagRead(object sender, TagReadDataEventArgs e)
         {
+            bool newEpc = false;
             int epccount;
             myEpc = e.TagReadData.ToString().Substring(4, 24).ToUpper();
             myEpcID = myEpc.Substring(0, 2).ToUpper();
@@ -132,7 +133,7 @@ namespace SerialTest02
             try 
             { 
                 epccount = myEPClistcount[index]; 
-                updateFirebase(epccount);
+                updateFirebase(epccount,newEpc);
                 //exportFirebase(epccount);
             }
             catch { }
@@ -140,11 +141,10 @@ namespace SerialTest02
         }
 
         //同步方式處理資料
-        private async void updateFirebase(int cEpcCount)
+        private async void updateFirebase(int cEpcCount, bool newEpc)
         {
-            if(newEpc==true)
+            if(newEpc == true)
             {
-                newEpc = false;
                 await fclient.SetAsync("TheIDs/ID0" + myEpcID + "/ID", myEpc);
                 await fclient.SetAsync("TheIDs/ID0" + myEpcID + "/Temperature", myEpc.Substring(2, 4));
                 await fclient.SetAsync("TheIDs/ID0" + myEpcID + "/xlocation", 0);
@@ -191,7 +191,7 @@ namespace SerialTest02
                 if (export1.Body == "null")
                 { 
                     resultedNull = true;
-                    resultedNullcount += 1;
+                    resultedNullcount += 2;
                 }                    
                 else
                     resultedNull = false;
@@ -286,11 +286,11 @@ namespace SerialTest02
                 locationArrayU = positioning(aveRssi01, aveRssi02, aveRssi03);
                 updateFirebaseU(mMyEpc.Substring(0, 2), locationArrayU);
             }
-            else if (resultedNullcount == 3)
+            else if (resultedNullcount == 4)
             {
-                
+                MessageBox.Show("所選的標籤資料不完整");
             }
-            else
+            else 
             {
                 MessageBox.Show("所選的標籤資料不完整");
             }
@@ -507,7 +507,8 @@ namespace SerialTest02
                 reader = Reader.Create("eapi:///" + serialnum);
                 reader.Connect();
                 MessageBox.Show("成功連接天線");
-            }
+                connected = true;
+                            }
             catch (IOException connectE)
             {
                 MessageBox.Show(connectE.Message);
@@ -538,6 +539,7 @@ namespace SerialTest02
             //reader.ParamSet("/reader/read/plan", 2700);
 
             //MessageBox.Show("The antenna has been successfully connected to the PC");
+            Button_Connect.IsEnabled = false;
         }
     }
 
