@@ -5,15 +5,6 @@ namespace SerialTest02
         public string Rssi { get; set; }
     }
 
-    internal class TemperatureData
-    {
-        public string Temperature { get; set; }
-    }
-    internal class EpcIDData
-    {
-        public string EpcID { get; set; }
-    }
-
     public class myTagsData
     {
 
